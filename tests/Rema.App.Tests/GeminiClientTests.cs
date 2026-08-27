@@ -41,7 +41,7 @@ public class GeminiClientTests
         """;
         var (client, handler) = Make(HttpStatusCode.OK, body);
 
-        var result = await client.GenerateAsync("AIzaSECRET", "gemini-2.5-flash", "sys", "user", 2000, default);
+        var result = await client.GenerateAsync("AIzaSECRET", "gemini-3.7-flash", "sys", "user", 2000, default);
 
         Assert.Equal("Kæmpe tilbud i dag! 🎉", result.Text);
         Assert.Equal(320, result.PromptTokens);
@@ -49,7 +49,7 @@ public class GeminiClientTests
 
         Assert.Equal("AIzaSECRET", handler.LastRequest!.Headers.GetValues("x-goog-api-key").Single());
         Assert.DoesNotContain("AIzaSECRET", handler.LastRequest.RequestUri!.ToString());
-        Assert.Contains("gemini-2.5-flash:generateContent", handler.LastRequest.RequestUri!.ToString());
+        Assert.Contains("gemini-3.7-flash:generateContent", handler.LastRequest.RequestUri!.ToString());
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public class GeminiClientTests
         var (client, _) = Make(HttpStatusCode.BadRequest, body);
 
         var ex = await Assert.ThrowsAsync<AiGenerationException>(
-            () => client.GenerateAsync("bad", "gemini-2.5-flash", "s", "u", 100, default));
+            () => client.GenerateAsync("bad", "gemini-3.7-flash", "s", "u", 100, default));
         Assert.Contains("API-nøglen blev afvist", ex.Message);
     }
 
@@ -71,7 +71,7 @@ public class GeminiClientTests
         var (client, _) = Make(HttpStatusCode.TooManyRequests, """{ "error": { "message": "Quota exceeded" } }""");
 
         var ex = await Assert.ThrowsAsync<AiGenerationException>(
-            () => client.GenerateAsync("k", "gemini-2.5-flash", "s", "u", 100, default));
+            () => client.GenerateAsync("k", "gemini-3.7-flash", "s", "u", 100, default));
         Assert.Contains("gratis-grænse", ex.Message);
     }
 
@@ -84,7 +84,7 @@ public class GeminiClientTests
         var (client, _) = Make(HttpStatusCode.OK, body);
 
         var ex = await Assert.ThrowsAsync<AiGenerationException>(
-            () => client.GenerateAsync("k", "gemini-2.5-flash", "s", "u", 100, default));
+            () => client.GenerateAsync("k", "gemini-3.7-flash", "s", "u", 100, default));
         Assert.Contains("afviste at skrive", ex.Message);
     }
 
@@ -94,7 +94,7 @@ public class GeminiClientTests
         var (client, _) = Make(HttpStatusCode.OK, """{ "promptFeedback": { "blockReason": "SAFETY" } }""");
 
         var ex = await Assert.ThrowsAsync<AiGenerationException>(
-            () => client.GenerateAsync("k", "gemini-2.5-flash", "s", "u", 100, default));
+            () => client.GenerateAsync("k", "gemini-3.7-flash", "s", "u", 100, default));
         Assert.Contains("blokerede", ex.Message);
     }
 }

@@ -20,8 +20,15 @@ public class SettingsModel(
     public string? ApiKeyHint { get; private set; }
     public bool HasApiKey { get; private set; }
 
-    public static readonly string[] Models =
-        ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash"];
+    /// <summary>
+    /// Forslag til modeller på gratis-niveauet. Bare forslag – feltet er fritekst,
+    /// så en nyere model kan skrives ind uden kodeændring. Se ai.google.dev/gemini-api/docs/models.
+    /// </summary>
+    public static readonly string[] ModelSuggestions =
+        ["gemini-3.7-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"];
+
+    private static readonly System.Text.RegularExpressions.Regex ModelPattern =
+        new(@"^gemini-[a-z0-9.\-]{1,50}$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
     public const string DefaultCompetitionRules =
         "Konkurrencen er ikke sponsoreret af, administreret af eller tilknyttet Facebook. "
@@ -104,8 +111,9 @@ public class SettingsModel(
 
     public async Task<IActionResult> OnPostAsync()
     {
-        if (!Models.Contains(Input.Model))
-            ModelState.AddModelError("Input.Model", "Ukendt model.");
+        Input.Model = (Input.Model ?? string.Empty).Trim();
+        if (!ModelPattern.IsMatch(Input.Model))
+            ModelState.AddModelError("Input.Model", "Modelnavnet skal starte med \"gemini-\", fx gemini-3.7-flash.");
         if (!ModelState.IsValid)
         {
             var cur = await LoadAsync();

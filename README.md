@@ -65,10 +65,13 @@ klartekst, aldrig vist igen. Stilprofilen (tone, emoji, afslutning, hashtags, ad
 åbningstider, op til 3 eksempel-opslag) låser tonen, så alle opslag ligner hinanden.
 Konkurrence-opslag får automatisk Facebook-disclaimer + de betingelser butikken har angivet.
 
-Model vælges pr. butik (standard `gemini-2.5-flash`). Kaldet går direkte mod Geminis
-REST-API via `HttpClient` (`generativelanguage.googleapis.com`), nøgle i
-`x-goog-api-key`-header (aldrig i URL). Ingen central nøgle nødvendig. Provideren sidder
-bag `IFacebookPostGenerator` – en anden model/udbyder kan sættes ind uden at røre resten.
+Model vælges pr. butik som **fritekst** (standard `gemini-3.7-flash`, forslag i en
+datalist) – så et nyt modelnavn kan skrives ind uden kodeændring når Google skifter
+dem ud. Kun mønsteret `gemini-…` valideres. Kaldet går mod Geminis
+`v1beta/models/{model}:generateContent` via `HttpClient`, nøgle i
+`x-goog-api-key`-header (aldrig i URL). `generateContent` er fortsat fuldt understøttet;
+Googles nyere "Interactions API" er ikke taget i brug endnu. Provideren sidder bag
+`IFacebookPostGenerator` – en anden model/udbyder kan sættes ind uden at røre resten.
 
 ## Migrationer
 

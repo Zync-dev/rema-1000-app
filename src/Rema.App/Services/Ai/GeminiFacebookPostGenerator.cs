@@ -10,7 +10,7 @@ public sealed class GeminiFacebookPostGenerator(
     GeminiClient gemini,
     ApiKeyProtector protector) : IFacebookPostGenerator
 {
-    public const string DefaultModel = "gemini-2.5-flash";
+    public const string DefaultModel = "gemini-3.7-flash";
     private const int MaxOutputTokens = 2000;
 
     public async Task<GeneratedPost> GenerateAsync(

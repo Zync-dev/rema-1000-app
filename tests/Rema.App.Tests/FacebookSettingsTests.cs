@@ -12,7 +12,7 @@ public class FacebookSettingsTests
     private sealed class StubGenerator : IFacebookPostGenerator
     {
         public Task<GeneratedPost> GenerateAsync(Store s, StoreAiSettings st, IReadOnlyList<string> ex, FacebookPostType t, string b, CancellationToken ct = default)
-            => Task.FromResult(new GeneratedPost("tekst", "gemini-2.5-flash", 1, 1));
+            => Task.FromResult(new GeneratedPost("tekst", "gemini-3.7-flash", 1, 1));
         public Task<bool> TestConnectionAsync(string apiKey, string model, CancellationToken ct = default)
             => Task.FromResult(true);
     }
@@ -32,7 +32,7 @@ public class FacebookSettingsTests
             var model = NewModel(db);
             model.Input = new SettingsModel.InputModel
             {
-                Model = "gemini-2.5-flash-lite",
+                Model = "gemini-3.5-flash-lite",
                 NewApiKey = "sk-ant-secret-9999",
                 Tone = "Glad",
                 SignOff = "Vi ses!",
@@ -45,7 +45,7 @@ public class FacebookSettingsTests
         await using (var db = TestDb.For(store, dbName))
         {
             var s = await db.StoreAiSettings.Include(x => x.Examples).SingleAsync();
-            Assert.Equal("gemini-2.5-flash-lite", s.Model);
+            Assert.Equal("gemini-3.5-flash-lite", s.Model);
             Assert.Equal(store, s.StoreId);
             Assert.NotNull(s.ApiKeyProtected);
             Assert.NotEqual("sk-ant-secret-9999", s.ApiKeyProtected);
@@ -66,7 +66,7 @@ public class FacebookSettingsTests
         {
             db.StoreAiSettings.Add(new StoreAiSettings
             {
-                StoreId = store, Model = "gemini-2.5-flash",
+                StoreId = store, Model = "gemini-3.7-flash",
                 ApiKeyProtected = "blob", ApiKeyHint = "····1234", Tone = "Fast tone",
             });
             await db.SaveChangesAsync();
@@ -75,7 +75,7 @@ public class FacebookSettingsTests
         await using (var db = TestDb.For(store, dbName))
         {
             var model = NewModel(db);
-            model.Input = new SettingsModel.InputModel { Model = "gemini-2.5-flash", RemoveApiKey = true, Tone = "Fast tone" };
+            model.Input = new SettingsModel.InputModel { Model = "gemini-3.7-flash", RemoveApiKey = true, Tone = "Fast tone" };
             await model.OnPostAsync();
         }
 
@@ -97,7 +97,7 @@ public class FacebookSettingsTests
 
         await using (var db = TestDb.For(storeA, dbName))
         {
-            db.StoreAiSettings.Add(new StoreAiSettings { StoreId = storeA, Model = "gemini-2.5-flash", ApiKeyProtected = "a" });
+            db.StoreAiSettings.Add(new StoreAiSettings { StoreId = storeA, Model = "gemini-3.7-flash", ApiKeyProtected = "a" });
             await db.SaveChangesAsync();
         }
 

@@ -42,13 +42,18 @@
 
                 <hr class="my-3" />
                 <label asp-for="Input.Model" class="form-label"></label>
-                <select asp-for="Input.Model" class="form-select">
-                    @foreach (var m in Rema.App.Pages.FacebookPost.SettingsModel.Models)
+                <input asp-for="Input.Model" class="form-control" list="modelSuggestions" autocomplete="off" />
+                <datalist id="modelSuggestions">
+                    @foreach (var m in Rema.App.Pages.FacebookPost.SettingsModel.ModelSuggestions)
                     {
-                        <option value="@m">@m</option>
+                        <option value="@m"></option>
                     }
-                </select>
-                <div class="form-text">gemini-2.5-flash giver de bedste opslag. "flash-lite" er hurtigst og har højest gratis-grænse.</div>
+                </datalist>
+                <span asp-validation-for="Input.Model" class="text-danger small"></span>
+                <div class="form-text">
+                    "flash" giver de bedste opslag; "flash-lite" er hurtigst og har højest gratis-grænse.
+                    Nyeste modelnavne: <span class="text-nowrap">ai.google.dev/gemini-api/docs/models</span>.
+                </div>
             </div>
         </div>
     </div>

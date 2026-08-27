@@ -80,7 +80,9 @@ public sealed class GeminiClient(HttpClient http, ILogger<GeminiClient> logger)
             HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden
                 => new AiGenerationException("API-nøglen blev afvist eller mangler adgang. Tjek den under Indstillinger."),
             HttpStatusCode.NotFound
-                => new AiGenerationException("Den valgte model findes ikke. Vælg en anden model under Indstillinger."),
+                => new AiGenerationException(
+                    "Den valgte model findes ikke (længere). Skift model under Indstillinger."
+                    + (string.IsNullOrWhiteSpace(apiMessage) ? "" : $" Google skriver: {apiMessage}")),
             HttpStatusCode.TooManyRequests
                 => new AiGenerationException("I har nået Geminis gratis-grænse for i dag/minuttet. Prøv igen senere."),
             _ => new AiGenerationException("Der opstod en fejl i kaldet til Gemini. Prøv igen."),

@@ -28,9 +28,9 @@ public class StoreAiSettings : ITenantEntity
     [MaxLength(8)]
     public string? ApiKeyHint { get; set; }
 
-    /// <summary>Gemini-model. Standard: gemini-2.5-flash (gratis niveau).</summary>
+    /// <summary>Gemini-model. Standard: gemini-3.7-flash (gratis niveau).</summary>
     [MaxLength(60)]
-    public string Model { get; set; } = "gemini-2.5-flash";
+    public string Model { get; set; } = "gemini-3.7-flash";
 
     // --- Stilprofil ---
     [MaxLength(400)]
