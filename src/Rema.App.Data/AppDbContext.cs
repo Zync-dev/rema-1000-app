@@ -20,6 +20,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvide
     public DbSet<ProductCalculation> ProductCalculations => Set<ProductCalculation>();
     public DbSet<FloorPlan> FloorPlans => Set<FloorPlan>();
     public DbSet<FloorBox> FloorBoxes => Set<FloorBox>();
+    public DbSet<StoreAiSettings> StoreAiSettings => Set<StoreAiSettings>();
+    public DbSet<FacebookStyleExample> FacebookStyleExamples => Set<FacebookStyleExample>();
+    public DbSet<FacebookPost> FacebookPosts => Set<FacebookPost>();
 
     /// <inheritdoc />
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
@@ -35,6 +38,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvide
             builder.Entity<ProductCalculation>().Property(x => x.Id),
             builder.Entity<FloorPlan>().Property(x => x.Id),
             builder.Entity<FloorBox>().Property(x => x.Id),
+            builder.Entity<StoreAiSettings>().Property(x => x.Id),
+            builder.Entity<FacebookStyleExample>().Property(x => x.Id),
+            builder.Entity<FacebookPost>().Property(x => x.Id),
         })
         {
             key.HasValueGenerator<GuidV7ValueGenerator>().ValueGeneratedOnAdd();
@@ -83,6 +89,24 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvide
             e.HasIndex(b => new { b.StoreId, b.FloorPlanId });
         });
 
+        builder.Entity<StoreAiSettings>(e =>
+        {
+            e.HasIndex(s => s.StoreId).IsUnique();
+            e.Property(s => s.EmojiUsage).HasConversion<string>().HasMaxLength(20);
+            e.Property(s => s.Model).IsRequired();
+            e.HasMany(s => s.Examples)
+                .WithOne(x => x.Settings!)
+                .HasForeignKey(x => x.StoreAiSettingsId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<FacebookPost>(e =>
+        {
+            e.Property(p => p.PostType).HasConversion<string>().HasMaxLength(30);
+            e.Property(p => p.Status).HasConversion<string>().HasMaxLength(20);
+            e.HasIndex(p => new { p.StoreId, p.CreatedUtc });
+        });
+
         // Globalt tenant-filter på alt butiks-ejet data.
         builder.Entity<ProductCalculation>()
             .HasQueryFilter(p => p.StoreId == _tenantProvider.StoreId);
@@ -90,6 +114,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvide
             .HasQueryFilter(p => p.StoreId == _tenantProvider.StoreId);
         builder.Entity<FloorBox>()
             .HasQueryFilter(b => b.StoreId == _tenantProvider.StoreId);
+        builder.Entity<StoreAiSettings>()
+            .HasQueryFilter(s => s.StoreId == _tenantProvider.StoreId);
+        builder.Entity<FacebookStyleExample>()
+            .HasQueryFilter(x => x.StoreId == _tenantProvider.StoreId);
+        builder.Entity<FacebookPost>()
+            .HasQueryFilter(p => p.StoreId == _tenantProvider.StoreId);
     }
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)

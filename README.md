@@ -10,7 +10,7 @@ sin egen konto (multi-tenant); data er adskilt pr. butik.
 | Login / opret butik / roller (Købmand, Souschef, Medarbejder) | ✅ |
 | Avancekalkulator (DB / dækningsgrad, moms, pant, gem beregninger) | ✅ |
 | Gulvplan (flere planer pr. butik, træk/skalér placeringer, ugens vare pr. boks, print) | ✅ |
-| AI Facebook-opslag | planlagt |
+| AI Facebook-opslag (stilprofil pr. butik, egen Anthropic-nøgle, tilbud/konkurrence/event) | ✅ |
 | AI vagtplan | senere |
 
 ## Teknologi
@@ -55,6 +55,18 @@ tests/Rema.App.Tests   xUnit (beregning + tenant-isolation)
    ```
 
    Åbn den viste URL, vælg **Opret butik**, og du er logget ind som købmand.
+
+## AI Facebook-opslag
+
+Hver butik indtaster sin **egen Anthropic API-nøgle** under `/facebook/indstillinger`
+(kun købmand/souschef). Nøglen gemmes krypteret med Data Protection – aldrig i klartekst,
+aldrig vist igen. Butikken betaler selv for forbruget hos Anthropic. Stilprofilen
+(tone, emoji, afslutning, hashtags, adresse, åbningstider, op til 3 eksempel-opslag)
+låser tonen, så alle opslag ligner hinanden. Konkurrence-opslag får automatisk
+Facebook-disclaimer + de betingelser butikken har angivet.
+
+Model vælges pr. butik (standard `claude-opus-5`). Kald: Messages API, kort output,
+lav effort. Ingen central nøgle – intet server-`ANTHROPIC_API_KEY` er nødvendigt.
 
 ## Migrationer
 

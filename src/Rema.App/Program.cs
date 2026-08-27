@@ -21,6 +21,11 @@ builder.Services.AddRemaData(connectionString);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantProvider, HttpTenantProvider>();
 
+// --- AI (Facebook-opslag) ------------------------------------------------
+builder.Services.AddSingleton<Rema.App.Services.Ai.ApiKeyProtector>();
+builder.Services.AddScoped<Rema.App.Services.Ai.IFacebookPostGenerator,
+    Rema.App.Services.Ai.AnthropicFacebookPostGenerator>();
+
 // --- Identity / auth ------------------------------------------------------
 builder.Services
     .AddIdentity<ApplicationUser, ApplicationRole>(options =>

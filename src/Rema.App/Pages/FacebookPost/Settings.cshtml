@@ -1,0 +1,156 @@
+@page "/facebook/indstillinger"
+@using Rema.App.Data.Entities
+@model Rema.App.Pages.FacebookPost.SettingsModel
+@{
+    ViewData["Title"] = "Facebook – indstillinger";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <a asp-page="Index" class="small text-decoration-none">&larr; Tilbage</a>
+        <h1 class="h4 mb-0">Facebook-opslag · indstillinger</h1>
+    </div>
+</div>
+
+<form method="post" class="row g-4">
+    <div asp-validation-summary="All" class="text-danger small"></div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body p-4">
+                <h2 class="h6 text-uppercase text-muted">API-nøgle</h2>
+                <p class="small text-muted">
+                    Butikkens egen Anthropic API-nøgle. Den gemmes krypteret og vises aldrig igen.
+                    Opret en nøgle på <span class="text-nowrap">console.anthropic.com</span>. I betaler selv for forbruget.
+                </p>
+                @if (Model.HasApiKey)
+                {
+                    <p class="mb-2">Nuværende nøgle: <code>@Model.ApiKeyHint</code></p>
+                    <div class="form-check mb-2">
+                        <input asp-for="Input.RemoveApiKey" class="form-check-input" id="removeKey" />
+                        <label for="removeKey" class="form-check-label">Fjern nøglen</label>
+                    </div>
+                }
+                <label asp-for="Input.NewApiKey" class="form-label">@(Model.HasApiKey ? "Skift nøgle" : "API-nøgle")</label>
+                <input asp-for="Input.NewApiKey" type="password" class="form-control" autocomplete="off"
+                       placeholder="sk-ant-..." id="apiKey" />
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnTest">Test forbindelse</button>
+                    <span id="testResult" class="small"></span>
+                </div>
+
+                <hr class="my-3" />
+                <label asp-for="Input.Model" class="form-label"></label>
+                <select asp-for="Input.Model" class="form-select">
+                    @foreach (var m in Rema.App.Pages.FacebookPost.SettingsModel.Models)
+                    {
+                        <option value="@m">@m</option>
+                    }
+                </select>
+                <div class="form-text">claude-opus-5 giver de bedste opslag. Haiku er billigst.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body p-4">
+                <h2 class="h6 text-uppercase text-muted">Butiksfakta</h2>
+                <div class="mb-2">
+                    <label asp-for="Input.Address" class="form-label"></label>
+                    <input asp-for="Input.Address" class="form-control" />
+                </div>
+                <div class="mb-2">
+                    <label asp-for="Input.OpeningHours" class="form-label"></label>
+                    <textarea asp-for="Input.OpeningHours" class="form-control" rows="3"
+                              placeholder="Man-fre 7-21&#10;Lør-søn 8-20"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body p-4">
+                <h2 class="h6 text-uppercase text-muted">Stil</h2>
+                <div class="mb-2">
+                    <label asp-for="Input.Tone" class="form-label"></label>
+                    <input asp-for="Input.Tone" class="form-control" placeholder="Uformel, glad, lokal" />
+                </div>
+                <div class="mb-2">
+                    <label asp-for="Input.EmojiUsage" class="form-label"></label>
+                    <select asp-for="Input.EmojiUsage" class="form-select"
+                            asp-items="Html.GetEnumSelectList<EmojiUsage>()"></select>
+                </div>
+                <div class="mb-2">
+                    <label asp-for="Input.SignOff" class="form-label"></label>
+                    <input asp-for="Input.SignOff" class="form-control" placeholder="Vi ses i Rema 1000 Nørrebrogade!" />
+                </div>
+                <div class="mb-2">
+                    <label asp-for="Input.Hashtags" class="form-label"></label>
+                    <input asp-for="Input.Hashtags" class="form-control" placeholder="#rema1000 #nørrebro" />
+                </div>
+                <div class="mb-0">
+                    <label asp-for="Input.ExtraGuidance" class="form-label"></label>
+                    <textarea asp-for="Input.ExtraGuidance" class="form-control" rows="3"
+                              placeholder="Fx: brug aldrig ordet billigst. Skriv gerne 'du' og ikke 'De'."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body p-4">
+                <h2 class="h6 text-uppercase text-muted">Eksempel-opslag</h2>
+                <p class="small text-muted">Op til 3 rigtige opslag der viser jeres stil. AI'en matcher tone og længde.</p>
+                @for (var i = 0; i < Rema.App.Pages.FacebookPost.SettingsModel.MaxExamples; i++)
+                {
+                    <textarea name="Input.Examples[@i]" class="form-control mb-2" rows="3">@(i < Model.Input.Examples.Count ? Model.Input.Examples[i] : "")</textarea>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body p-4">
+                <h2 class="h6 text-uppercase text-muted">Konkurrencebetingelser</h2>
+                <p class="small text-muted">Sættes ind i bunden af konkurrence-opslag. Tjek dem med din egen viden om reglerne.</p>
+                <textarea asp-for="Input.CompetitionRulesText" class="form-control" rows="4"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Gem indstillinger</button>
+    </div>
+</form>
+
+<form id="afForm">@Html.AntiForgeryToken()</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('btnTest').addEventListener('click', function () {
+            var out = document.getElementById('testResult');
+            var key = document.getElementById('apiKey').value;
+            out.textContent = 'Tester...';
+            out.className = 'small text-muted';
+            fetch('?handler=Test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('#afForm input[name="__RequestVerificationToken"]').value
+                },
+                body: new URLSearchParams({ key: key })
+            }).then(function (r) { return r.json(); }).then(function (d) {
+                out.textContent = d.message;
+                out.className = 'small ' + (d.ok ? 'text-success' : 'text-danger');
+            }).catch(function () {
+                out.textContent = 'Kunne ikke teste nu.';
+                out.className = 'small text-danger';
+            });
+        });
+    </script>
+}

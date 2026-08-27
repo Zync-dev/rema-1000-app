@@ -1,0 +1,154 @@
+@page "/facebook"
+@using Rema.App.Data.Entities
+@model Rema.App.Pages.FacebookPost.IndexModel
+@{
+    ViewData["Title"] = "Facebook-opslag";
+
+    string TypeLabel(FacebookPostType t) => t switch
+    {
+        FacebookPostType.Tilbud => "Tilbud",
+        FacebookPostType.Konkurrence => "Konkurrence",
+        FacebookPostType.NyMedarbejder => "Ny medarbejder",
+        FacebookPostType.Aabningstider => "Åbningstider",
+        FacebookPostType.Event => "Event",
+        _ => "Andet",
+    };
+    string Placeholder(FacebookPostType t) => t switch
+    {
+        FacebookPostType.Tilbud => "Fx: Coca-Cola 1,5 l til 10 kr, normalpris 18 kr. Gælder tirsdag-søndag. Max 6 stk pr. kunde.",
+        FacebookPostType.Konkurrence => "Fx: Vind et gavekort på 500 kr. Deltag: like opslaget og skriv hvem du vil dele med. Vinder trækkes fredag d. [dato].",
+        FacebookPostType.NyMedarbejder => "Fx: Sig velkommen til Mette, 19 år, som står i kassen og bageriet. Hun elsker håndbold.",
+        FacebookPostType.Aabningstider => "Fx: Grundlovsdag 5. juni har vi åbent 8-16 i stedet for normal åbningstid.",
+        FacebookPostType.Event => "Fx: Lørdag d. [dato] kl. 10-14 har vi pølsevogn og ballonuddeling foran butikken.",
+        _ => "Skriv de vigtigste oplysninger her.",
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Facebook-opslag</h1>
+    @if (Model.CanConfigure)
+    {
+        <a asp-page="Settings" class="btn btn-outline-secondary btn-sm">Indstillinger</a>
+    }
+</div>
+
+@if (Model.Settings is null || !Model.Settings.HasApiKey)
+{
+    <div class="alert alert-warning">
+        Værktøjet er ikke sat op endnu.
+        @if (Model.CanConfigure)
+        {
+            <a asp-page="Settings">Indtast butikkens API-nøgle og stil under Indstillinger.</a>
+        }
+        else
+        {
+            <text>Bed din købmand om at indtaste butikkens API-nøgle og stilprofil.</text>
+        }
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body p-4">
+                <h2 class="h6 text-uppercase text-muted">Nyt opslag</h2>
+                <form method="post" asp-page-handler="Generate">
+                    <div asp-validation-summary="All" class="text-danger small mb-2"></div>
+                    <div class="mb-3">
+                        <label class="form-label">Type</label>
+                        <select asp-for="Input.PostType" class="form-select"
+                                asp-items="Html.GetEnumSelectList<FacebookPostType>()"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Input.Brief" class="form-label"></label>
+                        <textarea asp-for="Input.Brief" class="form-control" rows="6"
+                                  placeholder="@Placeholder(Model.Input.PostType)"></textarea>
+                        <div class="form-text">AI'en finder ikke selv på priser eller datoer – skriv alt der skal med.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary"
+                            @(Model.Settings?.HasApiKey == true ? "" : "disabled")>
+                        Generér opslag
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        @if (Model.Focus is { } f)
+        {
+            <div class="card mt-3 border-primary">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h2 class="h6 text-uppercase text-muted mb-0">Resultat · @TypeLabel(f.PostType)</h2>
+                        <span class="small text-muted">@f.Model · @(f.InputTokens + f.OutputTokens) tokens</span>
+                    </div>
+                    <form method="post" asp-page-handler="Update" asp-route-id="@f.Id">
+                        <textarea name="text" id="focusText" class="form-control" rows="12">@f.Text</textarea>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="copyText('focusText', this)">Kopiér</button>
+                            <select name="status" class="form-select form-select-sm w-auto">
+                                @foreach (var s in Enum.GetValues<FacebookPostStatus>())
+                                {
+                                    <option value="@s" selected="@(s == f.Status)">@s</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-primary btn-sm">Gem</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-6">
+        <h2 class="h6 text-uppercase text-muted">Tidligere opslag</h2>
+        @if (Model.Recent.Count == 0)
+        {
+            <p class="text-muted small">Ingen opslag endnu.</p>
+        }
+        else
+        {
+            <div class="list-group">
+                @foreach (var p in Model.Recent)
+                {
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <span class="badge text-bg-light">@TypeLabel(p.PostType)</span>
+                            <span class="small text-muted">@p.CreatedUtc.ToLocalTime().ToString("dd-MM-yyyy HH:mm") · @p.CreatedByName</span>
+                        </div>
+                        <p class="mb-1 mt-2" style="white-space:pre-wrap">@(p.Text.Length > 260 ? p.Text[..260] + "…" : p.Text)</p>
+                        <div class="d-flex gap-2 align-items-center">
+                            <span class="badge @(p.Status == FacebookPostStatus.Klar ? "text-bg-success" : p.Status == FacebookPostStatus.Brugt ? "text-bg-secondary" : "text-bg-warning")">@p.Status</span>
+                            <a class="btn btn-link btn-sm p-0" asp-route-post="@p.Id">Åbn</a>
+                            <form method="post" asp-page-handler="Delete" asp-route-id="@p.Id" onsubmit="return confirm('Slet opslaget?');">
+                                <button class="btn btn-link btn-sm p-0 text-danger">Slet</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function copyText(id, btn) {
+            var el = document.getElementById(id);
+            navigator.clipboard.writeText(el.value).then(function () {
+                var t = btn.textContent; btn.textContent = "Kopieret!";
+                setTimeout(function () { btn.textContent = t; }, 1500);
+            });
+        }
+        var placeholders = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            Enum.GetValues<Rema.App.Data.Entities.FacebookPostType>()
+                .ToDictionary(t => t.ToString(), t => Placeholder(t))));
+        var typeSel = document.querySelector('[name="Input.PostType"]');
+        var brief = document.querySelector('[name="Input.Brief"]');
+        if (typeSel && brief) {
+            typeSel.addEventListener('change', function () {
+                brief.placeholder = placeholders[typeSel.value] || '';
+            });
+        }
+    </script>
+}
