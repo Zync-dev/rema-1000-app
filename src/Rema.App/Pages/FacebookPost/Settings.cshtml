@@ -20,8 +20,9 @@
             <div class="card-body p-4">
                 <h2 class="h6 text-uppercase text-muted">API-nøgle</h2>
                 <p class="small text-muted">
-                    Butikkens egen Anthropic API-nøgle. Den gemmes krypteret og vises aldrig igen.
-                    Opret en nøgle på <span class="text-nowrap">console.anthropic.com</span>. I betaler selv for forbruget.
+                    Butikkens egen Google Gemini API-nøgle. Den gemmes krypteret og vises aldrig igen.
+                    Opret en <strong>gratis</strong> nøgle på <span class="text-nowrap">aistudio.google.com/apikey</span>
+                    (kræver kun en Google-konto – intet betalingskort). Gratis-niveauet rækker fint til en butiks opslag.
                 </p>
                 @if (Model.HasApiKey)
                 {
@@ -33,7 +34,7 @@
                 }
                 <label asp-for="Input.NewApiKey" class="form-label">@(Model.HasApiKey ? "Skift nøgle" : "API-nøgle")</label>
                 <input asp-for="Input.NewApiKey" type="password" class="form-control" autocomplete="off"
-                       placeholder="sk-ant-..." id="apiKey" />
+                       placeholder="AIza..." id="apiKey" />
                 <div class="d-flex align-items-center gap-2 mt-2">
                     <button type="button" class="btn btn-outline-secondary btn-sm" id="btnTest">Test forbindelse</button>
                     <span id="testResult" class="small"></span>
@@ -47,7 +48,7 @@
                         <option value="@m">@m</option>
                     }
                 </select>
-                <div class="form-text">claude-opus-5 giver de bedste opslag. Haiku er billigst.</div>
+                <div class="form-text">gemini-2.5-flash giver de bedste opslag. "flash-lite" er hurtigst og har højest gratis-grænse.</div>
             </div>
         </div>
     </div>

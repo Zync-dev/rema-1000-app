@@ -21,7 +21,7 @@ public class SettingsModel(
     public bool HasApiKey { get; private set; }
 
     public static readonly string[] Models =
-        ["claude-opus-5", "claude-sonnet-5", "claude-haiku-4-5"];
+        ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash"];
 
     public const string DefaultCompetitionRules =
         "Konkurrencen er ikke sponsoreret af, administreret af eller tilknyttet Facebook. "
@@ -34,7 +34,7 @@ public class SettingsModel(
     public class InputModel
     {
         [Display(Name = "Model")]
-        public string Model { get; set; } = "claude-opus-5";
+        public string Model { get; set; } = GeminiFacebookPostGenerator.DefaultModel;
 
         [Display(Name = "Ny API-nøgle")]
         [StringLength(200)]
@@ -161,7 +161,7 @@ public class SettingsModel(
         var apiKey = string.IsNullOrWhiteSpace(key)
             ? protector.TryUnprotect(s?.ApiKeyProtected)
             : key.Trim();
-        var model = s?.Model ?? "claude-opus-5";
+        var model = s?.Model ?? GeminiFacebookPostGenerator.DefaultModel;
 
         if (string.IsNullOrWhiteSpace(apiKey))
             return new JsonResult(new { ok = false, message = "Ingen nøgle at teste." });

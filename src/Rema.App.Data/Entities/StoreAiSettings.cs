@@ -28,9 +28,9 @@ public class StoreAiSettings : ITenantEntity
     [MaxLength(8)]
     public string? ApiKeyHint { get; set; }
 
-    /// <summary>Anthropic-model. Standard: claude-opus-5.</summary>
+    /// <summary>Gemini-model. Standard: gemini-2.5-flash (gratis niveau).</summary>
     [MaxLength(60)]
-    public string Model { get; set; } = "claude-opus-5";
+    public string Model { get; set; } = "gemini-2.5-flash";
 
     // --- Stilprofil ---
     [MaxLength(400)]

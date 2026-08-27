@@ -23,8 +23,13 @@ builder.Services.AddScoped<ITenantProvider, HttpTenantProvider>();
 
 // --- AI (Facebook-opslag) ------------------------------------------------
 builder.Services.AddSingleton<Rema.App.Services.Ai.ApiKeyProtector>();
+builder.Services.AddHttpClient<Rema.App.Services.Ai.GeminiClient>(c =>
+{
+    c.BaseAddress = new Uri(Rema.App.Services.Ai.GeminiClient.BaseAddress);
+    c.Timeout = TimeSpan.FromSeconds(60);
+});
 builder.Services.AddScoped<Rema.App.Services.Ai.IFacebookPostGenerator,
-    Rema.App.Services.Ai.AnthropicFacebookPostGenerator>();
+    Rema.App.Services.Ai.GeminiFacebookPostGenerator>();
 
 // --- Identity / auth ------------------------------------------------------
 builder.Services
