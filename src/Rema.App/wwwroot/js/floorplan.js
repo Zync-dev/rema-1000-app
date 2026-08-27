@@ -61,7 +61,11 @@
         floor.style.width = state.canvasWidth + "px";
         floor.style.height = state.canvasHeight + "px";
         floor.style.transform = "scale(" + zoom + ")";
-        scroll.style.height = (state.canvasHeight * zoom + 24) + "px";
+        // scale() ændrer ikke elementets pladsbehov – trim det overskydende væk,
+        // så scroll-containeren kun scroller når planen faktisk er større.
+        floor.style.marginRight = -(state.canvasWidth * (1 - zoom)) + "px";
+        floor.style.marginBottom = -(state.canvasHeight * (1 - zoom)) + "px";
+        scroll.style.height = Math.min(state.canvasHeight * zoom + 26, 640) + "px";
         els.canvasW.value = state.canvasWidth;
         els.canvasH.value = state.canvasHeight;
     }
@@ -200,9 +204,9 @@
             id: crypto.randomUUID(),
             label: String(n),
             offer: "", kind: kind, highlight: false,
-            x: 20 + (n % 8) * 12, y: 20 + (n % 8) * 12,
-            width: kind === "Gondolender" ? 200 : 120,
-            height: kind === "Gondolender" ? 60 : 90
+            x: 24 + (n % 6) * 20, y: 24 + (n % 6) * 20,
+            width: kind === "Gondolender" ? 220 : (kind === "Halvpalle" ? 90 : 140),
+            height: kind === "Gondolender" ? 64 : (kind === "Halvpalle" ? 90 : 110)
         };
         state.boxes.push(box);
         select(box.id);

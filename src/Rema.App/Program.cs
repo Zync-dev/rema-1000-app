@@ -58,7 +58,10 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.Name = "rema.auth";
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    // Kræv HTTPS for cookien i produktion; tillad HTTP lokalt så udvikling virker.
+    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+        ? CookieSecurePolicy.SameAsRequest
+        : CookieSecurePolicy.Always;
 });
 
 // Data Protection-nøgler i databasen, så cookies overlever en genstart / ny container.
