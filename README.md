@@ -9,7 +9,7 @@ sin egen konto (multi-tenant); data er adskilt pr. butik.
 |----------|----------|
 | Login / opret butik / roller (Købmand, Souschef, Medarbejder) | ✅ |
 | Avancekalkulator (DB / dækningsgrad, moms, pant, gem beregninger) | ✅ |
-| Gulvplan | planlagt |
+| Gulvplan (flere planer pr. butik, træk/skalér placeringer, ugens vare pr. boks, print) | ✅ |
 | AI Facebook-opslag | planlagt |
 | AI vagtplan | senere |
 

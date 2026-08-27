@@ -18,6 +18,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvide
 
     public DbSet<Store> Stores => Set<Store>();
     public DbSet<ProductCalculation> ProductCalculations => Set<ProductCalculation>();
+    public DbSet<FloorPlan> FloorPlans => Set<FloorPlan>();
+    public DbSet<FloorBox> FloorBoxes => Set<FloorBox>();
 
     /// <inheritdoc />
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
@@ -25,6 +27,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvide
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        // Tidsordnede v7-GUID-nøgler, genereret klientside ved indsættelse.
+        foreach (var key in new[]
+        {
+            builder.Entity<Store>().Property(x => x.Id),
+            builder.Entity<ProductCalculation>().Property(x => x.Id),
+            builder.Entity<FloorPlan>().Property(x => x.Id),
+            builder.Entity<FloorBox>().Property(x => x.Id),
+        })
+        {
+            key.HasValueGenerator<GuidV7ValueGenerator>().ValueGeneratedOnAdd();
+        }
 
         builder.Entity<Store>(e =>
         {
@@ -53,9 +67,29 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvide
             e.HasIndex(p => new { p.StoreId, p.CreatedUtc });
         });
 
+        builder.Entity<FloorPlan>(e =>
+        {
+            e.Property(p => p.Name).IsRequired();
+            e.HasIndex(p => new { p.StoreId, p.Name });
+            e.HasMany(p => p.Boxes)
+                .WithOne(b => b.FloorPlan!)
+                .HasForeignKey(b => b.FloorPlanId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<FloorBox>(e =>
+        {
+            e.Property(b => b.Kind).HasConversion<string>().HasMaxLength(20);
+            e.HasIndex(b => new { b.StoreId, b.FloorPlanId });
+        });
+
         // Globalt tenant-filter på alt butiks-ejet data.
         builder.Entity<ProductCalculation>()
             .HasQueryFilter(p => p.StoreId == _tenantProvider.StoreId);
+        builder.Entity<FloorPlan>()
+            .HasQueryFilter(p => p.StoreId == _tenantProvider.StoreId);
+        builder.Entity<FloorBox>()
+            .HasQueryFilter(b => b.StoreId == _tenantProvider.StoreId);
     }
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)

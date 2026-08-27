@@ -1,0 +1,81 @@
+@page "/gulvplan/{id:guid}/print"
+@model Rema.App.Pages.FloorPlan.PrintModel
+@{
+    ViewData["Title"] = $"Print · {Model.Plan.Name}";
+    Layout = null;
+    var w = Model.Plan.CanvasWidth;
+    var h = Model.Plan.CanvasHeight;
+}
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="utf-8" />
+    <title>@Model.Plan.Name – gulvplan</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        @@page { size: A4 landscape; margin: 12mm; }
+        body { background: #fff; }
+        .print-floor {
+            position: relative; border: 2px solid #333; margin: 0 auto;
+            width: @(w)px; height: @(h)px;
+            transform-origin: top left;
+        }
+        .pbox {
+            position: absolute; border: 1.5px solid #333; border-radius: 4px;
+            padding: 4px 6px; overflow: hidden; background: #fff;
+            font-size: 12px; line-height: 1.2;
+        }
+        .pbox .l { font-weight: 700; }
+        .pbox .o { font-size: 11px; }
+        .pbox.hl { background: #fff2cc; border-color: var(--rema-red); }
+        @@media print { .no-print { display: none; } }
+    </style>
+</head>
+<body class="p-3">
+    <div class="d-flex justify-content-between align-items-baseline mb-2">
+        <h1 class="h4 mb-0">@Model.Plan.Name <span class="text-muted fs-6">– gulvplan</span></h1>
+        <div class="no-print">
+            <button class="btn btn-primary btn-sm" onclick="window.print()">Print</button>
+        </div>
+    </div>
+
+    <div style="overflow:auto">
+        <div class="print-floor" id="pf">
+            @foreach (var b in Model.Boxes)
+            {
+                <div class="pbox @(b.Highlight ? "hl" : "")"
+                     style="left:@(b.X)px;top:@(b.Y)px;width:@(b.Width)px;height:@(b.Height)px">
+                    <div class="l">@b.Label</div>
+                    <div class="o">@b.Offer</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <table class="table table-sm mt-3" style="max-width:700px">
+        <thead><tr><th>Nr.</th><th>Type</th><th>Ugens vare</th></tr></thead>
+        <tbody>
+        @foreach (var b in Model.Boxes)
+        {
+            <tr>
+                <td>@b.Label</td>
+                <td>@Rema.App.Pages.FloorPlan.PrintModel.KindLabel(b.Kind)</td>
+                <td>@b.Offer</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <script>
+        // Skalér gulvet så det passer til papiret.
+        (function () {
+            var pf = document.getElementById("pf");
+            var avail = Math.min(window.innerWidth - 60, 1050);
+            var scale = Math.min(1, avail / @w);
+            pf.style.transform = "scale(" + scale + ")";
+            pf.parentElement.style.height = (@h * scale + 20) + "px";
+        })();
+    </script>
+</body>
+</html>

@@ -7,7 +7,7 @@ namespace Rema.App.Data.Entities;
 /// </summary>
 public class Store
 {
-    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid Id { get; set; }
 
     /// <summary>Butiksnummer, fx "0123". Unikt på tværs af systemet.</summary>
     [MaxLength(16)]

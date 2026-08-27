@@ -20,8 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\..\src\Rema.App.Core\Rema.App.Core.csproj" />
     <ProjectReference Include="..\..\src\Rema.App.Data\Rema.App.Data.csproj" />
+    <ProjectReference Include="..\..\src\Rema.App\Rema.App.csproj" />
   </ItemGroup>
 
 </Project>

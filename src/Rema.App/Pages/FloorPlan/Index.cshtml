@@ -1,0 +1,66 @@
+@page "/gulvplan"
+@model Rema.App.Pages.FloorPlan.IndexModel
+@{
+    ViewData["Title"] = "Gulvplan";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Gulvplaner</h1>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        @if (Model.Plans.Count == 0)
+        {
+            <div class="card"><div class="card-body p-4 text-muted">
+                Ingen gulvplaner endnu. Opret én for hver etage/afdeling.
+            </div></div>
+        }
+        else
+        {
+            <div class="list-group">
+                @foreach (var p in Model.Plans)
+                {
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <a class="fw-semibold text-decoration-none" asp-page="Edit" asp-route-id="@p.Id">@p.Name</a>
+                            @if (!string.IsNullOrEmpty(p.Description)) { <div class="small text-muted">@p.Description</div> }
+                            <div class="small text-muted">@p.BoxCount placeringer · @p.OfferCount med tilbud · opdateret @p.UpdatedUtc.ToLocalTime().ToString("dd-MM-yyyy")</div>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <a class="btn btn-outline-primary" asp-page="Edit" asp-route-id="@p.Id">Rediger</a>
+                            <a class="btn btn-outline-secondary" asp-page="Print" asp-route-id="@p.Id" target="_blank">Print</a>
+                            <form method="post" asp-page-handler="Delete" asp-route-id="@p.Id" onsubmit="return confirm('Slet gulvplanen og alle dens placeringer?');">
+                                <button class="btn btn-outline-danger">Slet</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-body p-4">
+                <h2 class="h6 text-uppercase text-muted">Ny gulvplan</h2>
+                <form method="post">
+                    <div asp-validation-summary="All" class="text-danger small mb-2"></div>
+                    <div class="mb-3">
+                        <label asp-for="Input.Name" class="form-label"></label>
+                        <input asp-for="Input.Name" class="form-control" placeholder="Stueetage" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Input.Description" class="form-label"></label>
+                        <input asp-for="Input.Description" class="form-control" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Opret og redigér</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

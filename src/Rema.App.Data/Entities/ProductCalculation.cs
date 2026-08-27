@@ -8,7 +8,7 @@ namespace Rema.App.Data.Entities;
 /// </summary>
 public class ProductCalculation : ITenantEntity
 {
-    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid Id { get; set; }
 
     public Guid StoreId { get; set; }
 

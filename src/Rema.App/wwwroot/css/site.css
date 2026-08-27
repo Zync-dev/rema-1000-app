@@ -112,6 +112,57 @@ a { color: var(--rema-blue); }
 .result-figure.is-loss { color: var(--rema-red); }
 .result-figure.is-ok { color: #1a7f37; }
 
+/* --- Gulvplan-editor ------------------------------------------------- */
+.floor-scroll {
+  overflow: auto;
+  border: 1px solid #d9d5cb;
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(0deg, #eee 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(90deg, #eee 0 1px, transparent 1px 40px),
+    #fafafa;
+}
+
+.floor {
+  position: relative;
+  transform-origin: top left;
+  background: rgba(255, 255, 255, .35);
+  outline: 2px dashed #c9c4b8;
+}
+
+.fbox {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px solid var(--rema-blue);
+  border-radius: 6px;
+  background: #fff;
+  padding: 4px 6px;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .12);
+}
+.fbox:active { cursor: grabbing; }
+.fbox.selected { border-color: var(--rema-red); box-shadow: 0 0 0 3px rgba(226, 35, 26, .25); }
+.fbox.is-highlight { background: #fff2cc; }
+
+.fbox-label { font-weight: 700; font-size: 13px; line-height: 1.1; }
+.fbox-offer { font-size: 11px; color: #333; white-space: pre-wrap; }
+.fbox-kind {
+  position: absolute; right: 4px; bottom: 2px;
+  font-size: 9px; text-transform: uppercase; letter-spacing: .04em; color: #9a9a9a;
+}
+.fbox-resize {
+  position: absolute; right: 0; bottom: 0; width: 14px; height: 14px;
+  cursor: nwse-resize;
+  background: linear-gradient(135deg, transparent 50%, var(--rema-blue) 50%);
+}
+
+.fbox.kind-gondolender { border-style: solid; border-color: #6b7280; }
+.fbox.kind-koel { border-color: #0d6efd; background: #eef5ff; }
+.fbox.kind-bordplads { border-color: #8a6d3b; }
+
 /* --- Footer ---------------------------------------------------------- */
 .rema-footer {
   flex-shrink: 0;
