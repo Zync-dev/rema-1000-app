@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 32" role="img" aria-label="Rema 1000">
+  <!-- Midlertidig pladsholder. Erstat med det officielle Rema 1000-logo (SVG/PNG). -->
+  <rect width="120" height="32" rx="4" fill="#ffffff"/>
+  <text x="60" y="22" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="16" fill="#0a4d9c">REMA 1000</text>
+  <rect x="8" y="26" width="104" height="3" fill="#e2231a"/>
+</svg>

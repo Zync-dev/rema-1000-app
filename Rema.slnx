@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Rema.App.Core/Rema.App.Core.csproj" />
+    <Project Path="src/Rema.App.Data/Rema.App.Data.csproj" />
+    <Project Path="src/Rema.App/Rema.App.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Rema.App.Tests/Rema.App.Tests.csproj" />
+  </Folder>
+</Solution>

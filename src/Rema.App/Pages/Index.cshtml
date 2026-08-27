@@ -1,0 +1,50 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Oversigt";
+    var name = User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value;
+}
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <div class="rema-hero p-4 p-md-5 mb-4">
+        <h1 class="h3 mb-1">Hej@(string.IsNullOrEmpty(name) ? "" : " " + name)</h1>
+        <p class="mb-0 opacity-75">Vælg et værktøj herunder.</p>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6 col-lg-4">
+            <a asp-page="/Calculator/Index" class="tool-card card">
+                <div class="card-body p-4">
+                    <h2 class="h5">Avancekalkulator</h2>
+                    <p class="text-muted small mb-0">Beregn DB og dækningsgrad på en vare – normal- eller tilbudspris.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="tool-card card disabled">
+                <div class="card-body p-4">
+                    <h2 class="h5">Gulvplan <span class="badge text-bg-secondary">På vej</span></h2>
+                    <p class="text-muted small mb-0">Planlæg hvilke kasser tilbudsvarerne skal stå i.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="tool-card card disabled">
+                <div class="card-body p-4">
+                    <h2 class="h5">Facebook-opslag <span class="badge text-bg-secondary">På vej</span></h2>
+                    <p class="text-muted small mb-0">Lav opslag i butikkens faste stil.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="rema-hero p-4 p-md-5 text-center">
+        <h1 class="h3">Rema Butiksværktøjer</h1>
+        <p class="opacity-75">Værktøjer til den daglige drift – én konto pr. butik.</p>
+        <a asp-page="/Account/Register" class="btn btn-light text-primary fw-semibold me-2">Opret butik</a>
+        <a asp-page="/Account/Login" class="btn btn-outline-light">Log ind</a>
+    </div>
+}

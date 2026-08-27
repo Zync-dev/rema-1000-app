@@ -1,0 +1,128 @@
+:root {
+  /* Rema 1000 farvepalette – justér til de officielle brand-værdier ved behov. */
+  --rema-blue: #0a4d9c;
+  --rema-blue-dark: #073a78;
+  --rema-red: #e2231a;
+  --rema-sand: #f4f1ea;
+  --rema-ink: #1f2733;
+}
+
+html {
+  font-size: 15px;
+}
+
+@media (min-width: 768px) {
+  html { font-size: 16px; }
+}
+
+body {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--rema-sand);
+  color: var(--rema-ink);
+}
+
+main { flex: 1 0 auto; }
+
+/* --- Header ------------------------------------------------------------- */
+.rema-header {
+  background: var(--rema-blue);
+  border-bottom: 4px solid var(--rema-red);
+}
+
+.rema-header .navbar { padding-top: .6rem; padding-bottom: .6rem; }
+
+.rema-header .navbar-brand,
+.rema-header .nav-link,
+.rema-header .navbar-text {
+  color: #fff;
+}
+
+.rema-header .nav-link:hover { color: #ffd5d3; }
+
+.rema-wordmark {
+  font-weight: 800;
+  letter-spacing: .04em;
+  color: #fff;
+}
+
+.rema-subbrand {
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  opacity: .8;
+  border-left: 1px solid rgba(255, 255, 255, .4);
+  padding-left: .5rem;
+}
+
+.rema-store {
+  font-weight: 600;
+  opacity: .9;
+}
+
+.navbar-toggler {
+  border-color: rgba(255, 255, 255, .4);
+}
+.navbar-toggler-icon {
+  filter: invert(1);
+}
+
+/* --- Content ---------------------------------------------------------- */
+.card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(16, 32, 56, .08), 0 8px 24px rgba(16, 32, 56, .06);
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--rema-blue);
+  --bs-btn-border-color: var(--rema-blue);
+  --bs-btn-hover-bg: var(--rema-blue-dark);
+  --bs-btn-hover-border-color: var(--rema-blue-dark);
+  --bs-btn-active-bg: var(--rema-blue-dark);
+}
+
+a { color: var(--rema-blue); }
+
+.rema-hero {
+  background: linear-gradient(135deg, var(--rema-blue), var(--rema-blue-dark));
+  color: #fff;
+  border-radius: 16px;
+}
+
+.tool-card {
+  height: 100%;
+  transition: transform .12s ease, box-shadow .12s ease;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.tool-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(16, 32, 56, .12), 0 16px 40px rgba(16, 32, 56, .12);
+  color: inherit;
+}
+.tool-card.disabled { opacity: .55; pointer-events: none; }
+
+.result-figure {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+.result-figure.is-loss { color: var(--rema-red); }
+.result-figure.is-ok { color: #1a7f37; }
+
+/* --- Footer ---------------------------------------------------------- */
+.rema-footer {
+  flex-shrink: 0;
+  background: #fff;
+  border-top: 1px solid #e3e0d8;
+  padding: 1rem 0;
+  margin-top: 2rem;
+  font-size: .9rem;
+  color: #6b7280;
+}
+
+.btn:focus, .btn:active:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 .2rem rgba(10, 77, 156, .25);
+}

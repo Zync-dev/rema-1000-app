@@ -1,0 +1,162 @@
+@page
+@using Rema.App.Core.Profit
+@model Rema.App.Pages.Calculator.IndexModel
+@{
+    ViewData["Title"] = "Avancekalkulator";
+
+    string Kr(decimal v) => v.ToString("N2", System.Globalization.CultureInfo.GetCultureInfo("da-DK")) + " kr.";
+    string Pct(decimal v) => v.ToString("N1", System.Globalization.CultureInfo.GetCultureInfo("da-DK")) + " %";
+}
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-3">Avancekalkulator</h1>
+                <p class="text-muted small">Beregn dækningsbidrag (DB) og dækningsgrad (DG) på en vare. Pant regnes uden moms.</p>
+
+                <form method="post" id="calcForm">
+                    <div asp-validation-summary="All" class="text-danger small mb-2"></div>
+
+                    <div class="row g-3">
+                        <div class="col-sm-8">
+                            <label asp-for="Input.ProductName" class="form-label"></label>
+                            <input asp-for="Input.ProductName" class="form-control" />
+                        </div>
+                        <div class="col-sm-4">
+                            <label asp-for="Input.ProductNumber" class="form-label"></label>
+                            <input asp-for="Input.ProductNumber" class="form-control" />
+                        </div>
+
+                        <div class="col-sm-4">
+                            <label asp-for="Input.CostExVat" class="form-label"></label>
+                            <input asp-for="Input.CostExVat" class="form-control" type="number" step="0.01" min="0" data-calc="cost" />
+                        </div>
+                        <div class="col-sm-4">
+                            <label asp-for="Input.VatPercent" class="form-label"></label>
+                            <input asp-for="Input.VatPercent" class="form-control" type="number" step="0.01" min="0" max="100" data-calc="vat" />
+                        </div>
+                        <div class="col-sm-4">
+                            <label asp-for="Input.Deposit" class="form-label"></label>
+                            <input asp-for="Input.Deposit" class="form-control" type="number" step="0.01" min="0" data-calc="deposit" />
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label d-block">Beregningsmetode</label>
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="Input.Mode" id="modePrice" value="FromPrice" checked="@(Model.Input.Mode == Rema.App.Pages.Calculator.IndexModel.CalcMode.FromPrice)" data-calc-mode="price" />
+                                <label class="btn btn-outline-primary btn-sm" for="modePrice">Kender salgsprisen</label>
+
+                                <input type="radio" class="btn-check" name="Input.Mode" id="modeMargin" value="FromMargin" checked="@(Model.Input.Mode == Rema.App.Pages.Calculator.IndexModel.CalcMode.FromMargin)" data-calc-mode="margin" />
+                                <label class="btn btn-outline-primary btn-sm" for="modeMargin">Ramme en DG %</label>
+
+                                <input type="radio" class="btn-check" name="Input.Mode" id="modeMarkup" value="FromMarkup" checked="@(Model.Input.Mode == Rema.App.Pages.Calculator.IndexModel.CalcMode.FromMarkup)" data-calc-mode="markup" />
+                                <label class="btn btn-outline-primary btn-sm" for="modeMarkup">Ramme en avance %</label>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6" data-calc-field="price">
+                            <label asp-for="Input.SalesPriceInclVat" class="form-label"></label>
+                            <input asp-for="Input.SalesPriceInclVat" class="form-control" type="number" step="0.01" min="0" data-calc="price" />
+                        </div>
+                        <div class="col-sm-6 d-none" data-calc-field="margin">
+                            <label asp-for="Input.TargetMarginPercent" class="form-label"></label>
+                            <input asp-for="Input.TargetMarginPercent" class="form-control" type="number" step="0.1" data-calc="margin" />
+                        </div>
+                        <div class="col-sm-6 d-none" data-calc-field="markup">
+                            <label asp-for="Input.TargetMarkupPercent" class="form-label"></label>
+                            <input asp-for="Input.TargetMarkupPercent" class="form-control" type="number" step="0.1" data-calc="markup" />
+                        </div>
+                    </div>
+
+                    <div class="form-check mt-3">
+                        <input asp-for="Input.Save" class="form-check-input" id="saveCheck" />
+                        <label asp-for="Input.Save" class="form-check-label"></label>
+                    </div>
+                    <div class="mt-2 d-none" id="noteWrap">
+                        <label asp-for="Input.Note" class="form-label"></label>
+                        <input asp-for="Input.Note" class="form-control" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary mt-3">Beregn</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-body p-4">
+                <h2 class="h6 text-uppercase text-muted">Resultat</h2>
+                <div id="livePreview">
+                    @if (Model.Result is { } r)
+                    {
+                        <div class="result-figure @(r.IsLoss ? "is-loss" : "is-ok")" data-out="margin">@Pct(r.MarginPct)</div>
+                        <div class="text-muted small mb-3">dækningsgrad</div>
+                        <dl class="row mb-0 small">
+                            <dt class="col-7">Dækningsbidrag (DB)</dt><dd class="col-5 text-end" data-out="db">@Kr(r.Contribution)</dd>
+                            <dt class="col-7">Avance</dt><dd class="col-5 text-end" data-out="markup">@Pct(r.MarkupPct)</dd>
+                            <dt class="col-7">Salgspris inkl. moms</dt><dd class="col-5 text-end" data-out="priceIncl">@Kr(r.SalesPriceInclVat)</dd>
+                            <dt class="col-7">Salgspris ekskl. moms</dt><dd class="col-5 text-end" data-out="priceExcl">@Kr(r.SalesPriceExVat)</dd>
+                            <dt class="col-7">Nettoomsætning</dt><dd class="col-5 text-end" data-out="net">@Kr(r.NetSales)</dd>
+                            <dt class="col-7">Heraf moms</dt><dd class="col-5 text-end" data-out="vat">@Kr(r.VatAmount)</dd>
+                            @if (r.Deposit > 0)
+                            {
+                                <dt class="col-7">Pant (uden moms)</dt><dd class="col-5 text-end" data-out="deposit">@Kr(r.Deposit)</dd>
+                            }
+                        </dl>
+                    }
+                    else
+                    {
+                        <p class="text-muted small mb-0" data-empty>Udfyld felterne – resultatet vises her.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.Recent.Count > 0)
+{
+    <div class="card mt-4">
+        <div class="card-body p-4">
+            <h2 class="h5 mb-3">Gemte beregninger</h2>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr>
+                            <th>Vare</th><th class="text-end">Kostpris</th><th class="text-end">Salgspris</th>
+                            <th class="text-end">DB</th><th class="text-end">DG</th><th>Oprettet</th><th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in Model.Recent)
+                        {
+                            <tr>
+                                <td>
+                                    @c.ProductName
+                                    @if (!string.IsNullOrEmpty(c.ProductNumber)) { <span class="text-muted small">· @c.ProductNumber</span> }
+                                </td>
+                                <td class="text-end">@Kr(c.CostExVat)</td>
+                                <td class="text-end">@Kr(c.SalesPriceInclVat)</td>
+                                <td class="text-end">@Kr(c.Contribution)</td>
+                                <td class="text-end @(c.Contribution < 0 ? "text-danger" : "")">@Pct(c.MarginPct)</td>
+                                <td class="small text-muted">@c.CreatedUtc.ToLocalTime().ToString("dd-MM-yyyy") · @c.CreatedByName</td>
+                                <td class="text-end">
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@c.Id" onsubmit="return confirm('Slet beregningen?');">
+                                        <button class="btn btn-sm btn-outline-danger">Slet</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/calculator.js" asp-append-version="true"></script>
+}

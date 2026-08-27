@@ -1,0 +1,18 @@
+# Lokal PostgreSQL til udvikling. Kræver Docker Desktop.
+#   docker compose up -d
+# Forbindelse (læg i user-secrets, se README):
+#   Host=localhost;Port=5432;Database=rema_app;Username=rema;Password=rema
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: rema_app
+      POSTGRES_USER: rema
+      POSTGRES_PASSWORD: rema
+    ports:
+      - "5432:5432"
+    volumes:
+      - rema-pgdata:/var/lib/postgresql/data
+
+volumes:
+  rema-pgdata:

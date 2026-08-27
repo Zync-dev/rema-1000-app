@@ -1,0 +1,77 @@
+@{
+    var storeName = User.FindFirst(AppClaims.StoreName)?.Value;
+}
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] · Rema Butiksværktøjer</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Rema.App.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="rema-header">
+        <nav class="navbar navbar-expand-md">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center gap-2" asp-page="/Index">
+                    <img src="~/img/rema-logo.svg" alt="Rema 1000" height="28" onerror="this.style.display='none'" />
+                    <span class="rema-wordmark">REMA&nbsp;1000</span>
+                    <span class="rema-subbrand">Butiksværktøjer</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Vis menu">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav me-auto">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item"><a class="nav-link" asp-page="/Index">Oversigt</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-page="/Calculator/Index">Avancekalkulator</a></li>
+                        }
+                    </ul>
+                    <ul class="navbar-nav align-items-md-center">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            @if (!string.IsNullOrEmpty(storeName))
+                            {
+                                <li class="nav-item"><span class="navbar-text rema-store">@storeName</span></li>
+                            }
+                            <li class="nav-item">
+                                <form class="d-inline" asp-page="/Account/Logout" method="post">
+                                    <button type="submit" class="btn btn-sm btn-outline-light">Log ud</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item"><a class="nav-link" asp-page="/Account/Login">Log ind</a></li>
+                            <li class="nav-item"><a class="btn btn-sm btn-light text-primary fw-semibold" asp-page="/Account/Register">Opret butik</a></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container py-4">
+        <main role="main">
+            <partial name="_StatusMessage" />
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="rema-footer">
+        <div class="container d-flex flex-wrap justify-content-between">
+            <span>&copy; @DateTime.Now.Year Rema Butiksværktøjer</span>
+            <a asp-page="/Privacy">Privatliv &amp; data</a>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
