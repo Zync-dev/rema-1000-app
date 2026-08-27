@@ -1,22 +1,32 @@
 @{
     var storeName = User.FindFirst(AppClaims.StoreName)?.Value;
+    var displayName = User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value;
+    var currentPage = (ViewContext.RouteData.Values["page"] as string) ?? "";
+    string NavActive(string prefix) =>
+        currentPage.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ? "active" : "";
 }
 <!DOCTYPE html>
 <html lang="da">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a4d9c" />
     <title>@ViewData["Title"] · Rema Butiksværktøjer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Rema.App.styles.css" asp-append-version="true" />
 </head>
 <body>
+    <partial name="_Icons" />
+
     <header class="rema-header">
         <nav class="navbar navbar-expand-md">
             <div class="container">
-                <a class="navbar-brand d-flex align-items-center gap-2" asp-page="/Index">
-                    <img src="~/img/rema-logo.svg" alt="Rema 1000" height="28" onerror="this.style.display='none'" />
+                <a class="navbar-brand" asp-page="/Index">
+                    <img src="~/img/rema-logo.svg" alt="" height="26" onerror="this.style.display='none'" />
                     <span class="rema-wordmark">REMA&nbsp;1000</span>
                     <span class="rema-subbrand">Butiksværktøjer</span>
                 </a>
@@ -24,34 +34,43 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="mainNav">
-                    <ul class="navbar-nav me-auto">
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            <li class="nav-item"><a class="nav-link" asp-page="/Index">Oversigt</a></li>
-                            <li class="nav-item"><a class="nav-link" asp-page="/Calculator/Index">Avancekalkulator</a></li>
-                            <li class="nav-item"><a class="nav-link" asp-page="/FloorPlan/Index">Gulvplan</a></li>
-                            <li class="nav-item"><a class="nav-link" asp-page="/FacebookPost/Index">Facebook-opslag</a></li>
-                        }
-                    </ul>
-                    <ul class="navbar-nav align-items-md-center">
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="rema-nav me-auto">
+                            <a class="nav-link @NavActive("/Index")" asp-page="/Index">
+                                <svg class="icon"><use href="#i-grid" /></svg> Oversigt
+                            </a>
+                            <a class="nav-link @NavActive("/Calculator")" asp-page="/Calculator/Index">
+                                <svg class="icon"><use href="#i-calc" /></svg> Avancekalkulator
+                            </a>
+                            <a class="nav-link @NavActive("/FloorPlan")" asp-page="/FloorPlan/Index">
+                                <svg class="icon"><use href="#i-floor" /></svg> Gulvplan
+                            </a>
+                            <a class="nav-link @NavActive("/FacebookPost")" asp-page="/FacebookPost/Index">
+                                <svg class="icon"><use href="#i-megaphone" /></svg> Facebook-opslag
+                            </a>
+                        </div>
+                        <div class="rema-actions d-flex align-items-center gap-3">
                             @if (!string.IsNullOrEmpty(storeName))
                             {
-                                <li class="nav-item"><span class="navbar-text rema-store">@storeName</span></li>
+                                <span class="rema-store d-inline-flex align-items-center gap-2">
+                                    <svg class="icon"><use href="#i-store" /></svg>@storeName
+                                </span>
                             }
-                            <li class="nav-item">
-                                <form class="d-inline" asp-page="/Account/Logout" method="post">
-                                    <button type="submit" class="btn btn-sm btn-outline-light">Log ud</button>
-                                </form>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item"><a class="nav-link" asp-page="/Account/Login">Log ind</a></li>
-                            <li class="nav-item"><a class="btn btn-sm btn-light text-primary fw-semibold" asp-page="/Account/Register">Opret butik</a></li>
-                        }
-                    </ul>
+                            <form asp-page="/Account/Logout" method="post" class="m-0">
+                                <button type="submit" class="btn btn-sm btn-outline-light">
+                                    <svg class="icon"><use href="#i-logout" /></svg> Log ud
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="rema-actions d-flex align-items-center gap-2 ms-auto">
+                            <a class="btn btn-sm btn-outline-light" asp-page="/Account/Login">Log ind</a>
+                            <a class="btn btn-sm btn-light" asp-page="/Account/Register">Opret butik</a>
+                        </div>
+                    }
                 </div>
             </div>
         </nav>
@@ -65,8 +84,8 @@
     </div>
 
     <footer class="rema-footer">
-        <div class="container d-flex flex-wrap justify-content-between">
-            <span>&copy; @DateTime.Now.Year Rema Butiksværktøjer</span>
+        <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span>© @DateTime.Now.Year Rema Butiksværktøjer</span>
             <a asp-page="/Privacy">Privatliv &amp; data</a>
         </div>
     </footer>

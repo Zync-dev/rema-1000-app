@@ -230,7 +230,7 @@
     function markDirty() {
         dirty = true;
         els.status.textContent = "Ikke gemt";
-        els.status.className = "small text-warning";
+        els.status.className = "save-status text-warning";
         clearTimeout(saveTimer);
         saveTimer = setTimeout(save, 1200);
     }
@@ -244,7 +244,7 @@
         clearTimeout(saveTimer);
         if (!dirty) return;
         els.status.textContent = "Gemmer…";
-        els.status.className = "small text-muted";
+        els.status.className = "save-status text-muted";
 
         fetch(cfg.saveUrl, {
             method: "POST",
@@ -260,10 +260,10 @@
             dirty = false;
             var t = new Date();
             els.status.textContent = "Gemt kl. " + t.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
-            els.status.className = "small text-success";
+            els.status.className = "save-status text-success";
         }).catch(function () {
             els.status.textContent = "Kunne ikke gemme – prøv igen";
-            els.status.className = "small text-danger";
+            els.status.className = "save-status text-danger";
         });
     }
 

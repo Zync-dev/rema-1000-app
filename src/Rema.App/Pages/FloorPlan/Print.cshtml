@@ -11,34 +11,39 @@
 <head>
     <meta charset="utf-8" />
     <title>@Model.Plan.Name – gulvplan</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
     <style>
         @@page { size: A4 landscape; margin: 12mm; }
-        body { background: #fff; }
+        body { background: #fff; font-family: "Inter", system-ui, sans-serif; padding: 1.5rem; }
         .print-floor {
             position: relative; border: 2px solid #333; margin: 0 auto;
             width: @(w)px; height: @(h)px;
             transform-origin: top left;
         }
         .pbox {
-            position: absolute; border: 1.5px solid #333; border-radius: 4px;
-            padding: 4px 6px; overflow: hidden; background: #fff;
-            font-size: 12px; line-height: 1.2;
+            position: absolute; border: 1.5px solid #444; border-radius: 5px;
+            padding: 5px 7px; overflow: hidden; background: #fff;
+            font-size: 12px; line-height: 1.25;
         }
         .pbox .l { font-weight: 700; }
-        .pbox .o { font-size: 11px; }
-        .pbox.hl { background: #fff2cc; border-color: var(--rema-red); }
-        @@media print { .no-print { display: none; } }
+        .pbox .o { font-size: 11px; color: #333; }
+        .pbox.hl { background: #fff6e0; border-color: #e2231a; }
+        .print-table th { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: #888; }
+        @@media print { .no-print { display: none; } body { padding: 0; } }
     </style>
 </head>
-<body class="p-3">
-    <div class="d-flex justify-content-between align-items-baseline mb-2">
-        <h1 class="h4 mb-0">@Model.Plan.Name <span class="text-muted fs-6">– gulvplan</span></h1>
+<body>
+    <div class="d-flex justify-content-between align-items-baseline mb-3">
+        <h1 class="h4 mb-0">@Model.Plan.Name <span class="text-muted fs-6 fw-normal">· gulvplan</span></h1>
         <div class="no-print">
-            <button class="btn btn-primary btn-sm" onclick="window.print()">Print</button>
+            <button class="btn btn-primary btn-sm" onclick="window.print()">
+                <svg class="icon"><use href="#i-print" /></svg> Print
+            </button>
         </div>
     </div>
+    <partial name="_Icons" />
 
     <div style="overflow:auto">
         <div class="print-floor" id="pf">
@@ -53,7 +58,7 @@
         </div>
     </div>
 
-    <table class="table table-sm mt-3" style="max-width:700px">
+    <table class="table table-sm mt-4 print-table" style="max-width:700px">
         <thead><tr><th>Nr.</th><th>Type</th><th>Ugens vare</th></tr></thead>
         <tbody>
         @foreach (var b in Model.Boxes)

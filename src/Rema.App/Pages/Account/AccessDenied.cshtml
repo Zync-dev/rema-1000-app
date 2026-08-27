@@ -3,8 +3,9 @@
 @{
     ViewData["Title"] = "Ingen adgang";
 }
-<div class="text-center py-5">
-    <h1 class="h3">Ingen adgang</h1>
-    <p class="text-muted">Din bruger har ikke rettigheder til denne side. Kontakt din købmand.</p>
-    <a asp-page="/Index" class="btn btn-primary">Til oversigten</a>
+<div class="auth-wrap text-center">
+    <svg class="icon icon--lg text-muted mb-2"><use href="#i-alert" /></svg>
+    <h1 class="h4">Ingen adgang</h1>
+    <p class="text-muted">Din bruger har ikke rettigheder til denne side. Kontakt din købmand, hvis du mener det er en fejl.</p>
+    <a asp-page="/Index" class="btn btn-primary mt-2">Til oversigten</a>
 </div>

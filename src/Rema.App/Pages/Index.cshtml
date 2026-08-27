@@ -7,44 +7,40 @@
 
 @if (User.Identity?.IsAuthenticated == true)
 {
-    <div class="rema-hero p-4 p-md-5 mb-4">
-        <h1 class="h3 mb-1">Hej@(string.IsNullOrEmpty(name) ? "" : " " + name)</h1>
-        <p class="mb-0 opacity-75">Vælg et værktøj herunder.</p>
+    <div class="hero mb-4">
+        <h1>God arbejdsdag@(string.IsNullOrEmpty(name) ? "" : ", " + name)</h1>
+        <p>Vælg et værktøj herunder.</p>
     </div>
 
-    <div class="row g-3">
-        <div class="col-md-6 col-lg-4">
-            <a asp-page="/Calculator/Index" class="tool-card card">
-                <div class="card-body p-4">
-                    <h2 class="h5">Avancekalkulator</h2>
-                    <p class="text-muted small mb-0">Beregn DB og dækningsgrad på en vare – normal- eller tilbudspris.</p>
-                </div>
-            </a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-            <a asp-page="/FloorPlan/Index" class="tool-card card">
-                <div class="card-body p-4">
-                    <h2 class="h5">Gulvplan</h2>
-                    <p class="text-muted small mb-0">Planlæg hvilke kasser tilbudsvarerne skal stå i – én plan pr. etage.</p>
-                </div>
-            </a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-            <a asp-page="/FacebookPost/Index" class="tool-card card">
-                <div class="card-body p-4">
-                    <h2 class="h5">Facebook-opslag</h2>
-                    <p class="text-muted small mb-0">Generér opslag i butikkens faste stil – tilbud, konkurrencer, events.</p>
-                </div>
-            </a>
-        </div>
+    <div class="tool-grid">
+        <a asp-page="/Calculator/Index" class="tool-tile">
+            <span class="tool-tile__icon"><svg class="icon icon--lg"><use href="#i-calc" /></svg></span>
+            <h2>Avancekalkulator</h2>
+            <p>Beregn dækningsbidrag og dækningsgrad på en vare – normal- eller tilbudspris.</p>
+            <span class="tool-tile__go">Åbn <svg class="icon"><use href="#i-arrow-right" /></svg></span>
+        </a>
+        <a asp-page="/FloorPlan/Index" class="tool-tile">
+            <span class="tool-tile__icon"><svg class="icon icon--lg"><use href="#i-floor" /></svg></span>
+            <h2>Gulvplan</h2>
+            <p>Planlæg hvilke kasser tilbudsvarerne skal stå i – én plan pr. etage.</p>
+            <span class="tool-tile__go">Åbn <svg class="icon"><use href="#i-arrow-right" /></svg></span>
+        </a>
+        <a asp-page="/FacebookPost/Index" class="tool-tile">
+            <span class="tool-tile__icon"><svg class="icon icon--lg"><use href="#i-megaphone" /></svg></span>
+            <h2>Facebook-opslag</h2>
+            <p>Generér opslag i butikkens faste stil – tilbud, konkurrencer, events.</p>
+            <span class="tool-tile__go">Åbn <svg class="icon"><use href="#i-arrow-right" /></svg></span>
+        </a>
     </div>
 }
 else
 {
-    <div class="rema-hero p-4 p-md-5 text-center">
-        <h1 class="h3">Rema Butiksværktøjer</h1>
-        <p class="opacity-75">Værktøjer til den daglige drift – én konto pr. butik.</p>
-        <a asp-page="/Account/Register" class="btn btn-light text-primary fw-semibold me-2">Opret butik</a>
-        <a asp-page="/Account/Login" class="btn btn-outline-light">Log ind</a>
+    <div class="hero text-center py-5">
+        <h1 class="mb-2">Rema Butiksværktøjer</h1>
+        <p class="mx-auto" style="max-width: 44ch">Værktøjer til den daglige drift i butikken – avancekalkulator, gulvplan og AI-Facebook-opslag. Én konto pr. butik.</p>
+        <div class="d-flex justify-content-center gap-2 mt-4">
+            <a asp-page="/Account/Register" class="btn btn-light btn-lg">Opret butik</a>
+            <a asp-page="/Account/Login" class="btn btn-outline-light btn-lg">Log ind</a>
+        </div>
     </div>
 }

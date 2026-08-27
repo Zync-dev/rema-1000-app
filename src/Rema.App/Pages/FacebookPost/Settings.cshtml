@@ -5,42 +5,50 @@
     ViewData["Title"] = "Facebook – indstillinger";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<header class="page-head">
     <div>
-        <a asp-page="Index" class="small text-decoration-none">&larr; Tilbage</a>
-        <h1 class="h4 mb-0">Facebook-opslag · indstillinger</h1>
+        <a class="page-head__back" asp-page="Index"><svg class="icon"><use href="#i-arrow-left" /></svg> Facebook-opslag</a>
+        <h1>Indstillinger</h1>
+        <p class="page-head__sub">API-nøgle og stilprofil. Det samme sæt bruges til alle butikkens opslag.</p>
     </div>
-</div>
+</header>
 
 <form method="post" class="row g-4">
     <div asp-validation-summary="All" class="text-danger small"></div>
 
     <div class="col-lg-6">
-        <div class="card">
-            <div class="card-body p-4">
-                <h2 class="h6 text-uppercase text-muted">API-nøgle</h2>
-                <p class="small text-muted">
-                    Butikkens egen Google Gemini API-nøgle. Den gemmes krypteret og vises aldrig igen.
-                    Opret en <strong>gratis</strong> nøgle på <span class="text-nowrap">aistudio.google.com/apikey</span>
-                    (kræver kun en Google-konto – intet betalingskort). Gratis-niveauet rækker fint til en butiks opslag.
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="section-title"><svg class="icon"><use href="#i-key" /></svg> API-nøgle</h2>
+                <p class="form-text mt-0 mb-3">
+                    Butikkens egen Google Gemini-nøgle. Opret en <strong>gratis</strong> nøgle på
+                    <span class="text-nowrap">aistudio.google.com/apikey</span> (kun en Google-konto, intet betalingskort).
+                    Nøglen gemmes krypteret og vises aldrig igen.
                 </p>
+
                 @if (Model.HasApiKey)
                 {
-                    <p class="mb-2">Nuværende nøgle: <code>@Model.ApiKeyHint</code></p>
-                    <div class="form-check mb-2">
-                        <input asp-for="Input.RemoveApiKey" class="form-check-input" id="removeKey" />
-                        <label for="removeKey" class="form-check-label">Fjern nøglen</label>
+                    <div class="d-flex align-items-center justify-content-between p-2 px-3 mb-3 rounded"
+                         style="background: var(--ok-bg); color: var(--ok)">
+                        <span class="d-inline-flex align-items-center gap-2 fw-semibold small">
+                            <svg class="icon"><use href="#i-check" /></svg> Nøgle gemt (@Model.ApiKeyHint)
+                        </span>
+                        <div class="form-check m-0">
+                            <input asp-for="Input.RemoveApiKey" class="form-check-input" id="removeKey" />
+                            <label for="removeKey" class="form-check-label small">Fjern</label>
+                        </div>
                     </div>
                 }
+
                 <label asp-for="Input.NewApiKey" class="form-label">@(Model.HasApiKey ? "Skift nøgle" : "API-nøgle")</label>
-                <input asp-for="Input.NewApiKey" type="password" class="form-control" autocomplete="off"
-                       placeholder="AIza..." id="apiKey" />
+                <input asp-for="Input.NewApiKey" type="password" class="form-control" autocomplete="off" placeholder="AIza…" id="apiKey" />
                 <div class="d-flex align-items-center gap-2 mt-2">
                     <button type="button" class="btn btn-outline-secondary btn-sm" id="btnTest">Test forbindelse</button>
                     <span id="testResult" class="small"></span>
                 </div>
 
-                <hr class="my-3" />
+                <hr class="card__divider" />
+
                 <label asp-for="Input.Model" class="form-label"></label>
                 <input asp-for="Input.Model" class="form-control" list="modelSuggestions" autocomplete="off" />
                 <datalist id="modelSuggestions">
@@ -59,77 +67,86 @@
     </div>
 
     <div class="col-lg-6">
-        <div class="card">
-            <div class="card-body p-4">
-                <h2 class="h6 text-uppercase text-muted">Butiksfakta</h2>
-                <div class="mb-2">
-                    <label asp-for="Input.Address" class="form-label"></label>
-                    <input asp-for="Input.Address" class="form-control" />
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="section-title"><svg class="icon"><use href="#i-store" /></svg> Butiksfakta</h2>
+                <div class="stack">
+                    <div>
+                        <label asp-for="Input.Address" class="form-label"></label>
+                        <input asp-for="Input.Address" class="form-control" />
+                    </div>
+                    <div>
+                        <label asp-for="Input.OpeningHours" class="form-label"></label>
+                        <textarea asp-for="Input.OpeningHours" class="form-control" rows="3"
+                                  placeholder="Man-fre 7-21&#10;Lør-søn 8-20"></textarea>
+                    </div>
                 </div>
-                <div class="mb-2">
-                    <label asp-for="Input.OpeningHours" class="form-label"></label>
-                    <textarea asp-for="Input.OpeningHours" class="form-control" rows="3"
-                              placeholder="Man-fre 7-21&#10;Lør-søn 8-20"></textarea>
+                <p class="form-text">Bruges kun når det er relevant for et opslag (fx helligdagsåbning).</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="section-title"><svg class="icon"><use href="#i-sparkles" /></svg> Stil</h2>
+                <div class="stack">
+                    <div>
+                        <label asp-for="Input.Tone" class="form-label"></label>
+                        <input asp-for="Input.Tone" class="form-control" placeholder="Uformel, glad, lokal" />
+                    </div>
+                    <div>
+                        <label asp-for="Input.EmojiUsage" class="form-label"></label>
+                        <select asp-for="Input.EmojiUsage" class="form-select"
+                                asp-items="Html.GetEnumSelectList<EmojiUsage>()"></select>
+                    </div>
+                    <div>
+                        <label asp-for="Input.SignOff" class="form-label"></label>
+                        <input asp-for="Input.SignOff" class="form-control" placeholder="Vi ses i Rema 1000 Nørrebrogade!" />
+                    </div>
+                    <div>
+                        <label asp-for="Input.Hashtags" class="form-label"></label>
+                        <input asp-for="Input.Hashtags" class="form-control" placeholder="#rema1000 #nørrebro" />
+                    </div>
+                    <div>
+                        <label asp-for="Input.ExtraGuidance" class="form-label"></label>
+                        <textarea asp-for="Input.ExtraGuidance" class="form-control" rows="3"
+                                  placeholder="Fx: brug aldrig ordet billigst. Skriv 'du', ikke 'De'."></textarea>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-6">
-        <div class="card">
-            <div class="card-body p-4">
-                <h2 class="h6 text-uppercase text-muted">Stil</h2>
-                <div class="mb-2">
-                    <label asp-for="Input.Tone" class="form-label"></label>
-                    <input asp-for="Input.Tone" class="form-control" placeholder="Uformel, glad, lokal" />
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="section-title"><svg class="icon"><use href="#i-megaphone" /></svg> Eksempel-opslag</h2>
+                <p class="form-text mt-0 mb-3">Op til 3 rigtige opslag der viser jeres stil. AI'en matcher tone og længde.</p>
+                <div class="stack">
+                    @for (var i = 0; i < Rema.App.Pages.FacebookPost.SettingsModel.MaxExamples; i++)
+                    {
+                        <textarea name="Input.Examples[@i]" class="form-control" rows="3"
+                                  placeholder="Eksempel @(i + 1)">@(i < Model.Input.Examples.Count ? Model.Input.Examples[i] : "")</textarea>
+                    }
                 </div>
-                <div class="mb-2">
-                    <label asp-for="Input.EmojiUsage" class="form-label"></label>
-                    <select asp-for="Input.EmojiUsage" class="form-select"
-                            asp-items="Html.GetEnumSelectList<EmojiUsage>()"></select>
-                </div>
-                <div class="mb-2">
-                    <label asp-for="Input.SignOff" class="form-label"></label>
-                    <input asp-for="Input.SignOff" class="form-control" placeholder="Vi ses i Rema 1000 Nørrebrogade!" />
-                </div>
-                <div class="mb-2">
-                    <label asp-for="Input.Hashtags" class="form-label"></label>
-                    <input asp-for="Input.Hashtags" class="form-control" placeholder="#rema1000 #nørrebro" />
-                </div>
-                <div class="mb-0">
-                    <label asp-for="Input.ExtraGuidance" class="form-label"></label>
-                    <textarea asp-for="Input.ExtraGuidance" class="form-control" rows="3"
-                              placeholder="Fx: brug aldrig ordet billigst. Skriv gerne 'du' og ikke 'De'."></textarea>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-6">
-        <div class="card">
-            <div class="card-body p-4">
-                <h2 class="h6 text-uppercase text-muted">Eksempel-opslag</h2>
-                <p class="small text-muted">Op til 3 rigtige opslag der viser jeres stil. AI'en matcher tone og længde.</p>
-                @for (var i = 0; i < Rema.App.Pages.FacebookPost.SettingsModel.MaxExamples; i++)
-                {
-                    <textarea name="Input.Examples[@i]" class="form-control mb-2" rows="3">@(i < Model.Input.Examples.Count ? Model.Input.Examples[i] : "")</textarea>
-                }
             </div>
         </div>
     </div>
 
     <div class="col-12">
         <div class="card">
-            <div class="card-body p-4">
-                <h2 class="h6 text-uppercase text-muted">Konkurrencebetingelser</h2>
-                <p class="small text-muted">Sættes ind i bunden af konkurrence-opslag. Tjek dem med din egen viden om reglerne.</p>
+            <div class="card-body">
+                <h2 class="section-title"><svg class="icon"><use href="#i-tag" /></svg> Konkurrencebetingelser</h2>
+                <p class="form-text mt-0 mb-2">Sættes ind i bunden af konkurrence-opslag. Tjek dem mod de gældende regler.</p>
                 <textarea asp-for="Input.CompetitionRulesText" class="form-control" rows="4"></textarea>
             </div>
         </div>
     </div>
 
-    <div class="col-12">
-        <button type="submit" class="btn btn-primary">Gem indstillinger</button>
+    <div class="col-12 d-flex gap-3 align-items-center">
+        <button type="submit" class="btn btn-primary btn-lg">Gem indstillinger</button>
+        <a asp-page="Index" class="muted-link">Annullér</a>
     </div>
 </form>
 
@@ -141,7 +158,7 @@
         document.getElementById('btnTest').addEventListener('click', function () {
             var out = document.getElementById('testResult');
             var key = document.getElementById('apiKey').value;
-            out.textContent = 'Tester...';
+            out.textContent = 'Tester…';
             out.className = 'small text-muted';
             fetch('?handler=Test', {
                 method: 'POST',
@@ -152,7 +169,7 @@
                 body: new URLSearchParams({ key: key })
             }).then(function (r) { return r.json(); }).then(function (d) {
                 out.textContent = d.message;
-                out.className = 'small ' + (d.ok ? 'text-success' : 'text-danger');
+                out.className = 'small fw-semibold ' + (d.ok ? 'text-success' : 'text-danger');
             }).catch(function () {
                 out.textContent = 'Kunne ikke teste nu.';
                 out.className = 'small text-danger';

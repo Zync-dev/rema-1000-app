@@ -74,9 +74,11 @@
         if (!r) return;
 
         preview.innerHTML =
-            '<div class="result-figure ' + (r.isLoss ? "is-loss" : "is-ok") + '">' + pct.format(r.margin) + ' %</div>' +
-            '<div class="text-muted small mb-3">dækningsgrad (forhåndsvisning)</div>' +
-            '<dl class="row mb-0 small">' +
+            '<div class="stat">' +
+              '<div class="result-figure ' + (r.isLoss ? "is-loss" : "is-ok") + '">' + pct.format(r.margin) + ' %</div>' +
+              '<div class="stat__label">dækningsgrad · forhåndsvisning</div>' +
+            '</div>' +
+            '<dl class="kv">' +
             row("Dækningsbidrag (DB)", kr.format(r.db) + " kr.") +
             row("Avance", pct.format(r.markup) + " %") +
             row("Salgspris inkl. moms", kr.format(r.priceIncl) + " kr.") +
@@ -88,7 +90,7 @@
     }
 
     function row(label, value) {
-        return '<dt class="col-7">' + label + '</dt><dd class="col-5 text-end">' + value + '</dd>';
+        return '<dt>' + label + '</dt><dd>' + value + '</dd>';
     }
 
     form.addEventListener("input", render);

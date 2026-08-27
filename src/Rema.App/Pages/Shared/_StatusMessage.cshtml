@@ -5,7 +5,8 @@
 {
     var isError = message.StartsWith("Fejl", StringComparison.OrdinalIgnoreCase);
     <div class="alert @(isError ? "alert-danger" : "alert-success") alert-dismissible fade show" role="alert">
-        @message
+        <svg class="icon"><use href="@(isError ? "#i-alert" : "#i-check")" /></svg>
+        <span class="flex-grow-1">@message</span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Luk"></button>
     </div>
 }
