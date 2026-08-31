@@ -70,7 +70,7 @@ public class IndexModel(AppDbContext db) : PageModel
                 p.Name,
                 p.Description,
                 p.Boxes.Count,
-                p.Boxes.Count(b => b.Offer != null && b.Offer != ""),
+                p.Boxes.Count(b => (b.Offer != null && b.Offer != "") || (b.OfferB != null && b.OfferB != "")),
                 p.UpdatedUtc))
             .ToListAsync();
     }

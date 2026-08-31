@@ -86,6 +86,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvide
         builder.Entity<FloorBox>(e =>
         {
             e.Property(b => b.Kind).HasConversion<string>().HasMaxLength(20);
+            e.Property(b => b.Split).HasConversion<string>().HasMaxLength(20);
             e.HasIndex(b => new { b.StoreId, b.FloorPlanId });
         });
 

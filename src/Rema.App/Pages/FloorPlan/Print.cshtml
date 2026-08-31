@@ -1,85 +1,170 @@
 @page "/gulvplan/{id:guid}/print"
+@using Rema.App.Data.Entities
 @model Rema.App.Pages.FloorPlan.PrintModel
 @{
     ViewData["Title"] = $"Print · {Model.Plan.Name}";
     Layout = null;
     var w = Model.Plan.CanvasWidth;
     var h = Model.Plan.CanvasHeight;
+
+    string CellText(FloorBox b, bool second) => (second ? b.OfferB : b.Offer) ?? "";
 }
 <!DOCTYPE html>
 <html lang="da">
 <head>
     <meta charset="utf-8" />
-    <title>@Model.Plan.Name – gulvplan</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+    <title>@Model.Headline – gulvplan</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
     <style>
-        @@page { size: A4 landscape; margin: 12mm; }
-        body { background: #fff; font-family: "Inter", system-ui, sans-serif; padding: 1.5rem; }
-        .print-floor {
-            position: relative; border: 2px solid #333; margin: 0 auto;
+        @@page { size: A4 landscape; margin: 9mm; }
+        body { background: #eceae3; font-family: "Inter", system-ui, sans-serif; margin: 0; padding: 24px; }
+
+        .toolbar { max-width: 1040px; margin: 0 auto 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+        .toolbar .grow { flex: 1 1 260px; }
+        .toolbar label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; display: block; margin-bottom: 3px; }
+
+        /* Ét ark = A4 landscape brugbart areal ved 96dpi */
+        .sheet {
+            width: 1040px;
+            height: 715px;
+            margin: 0 auto;
+            background: #fff;
+            box-shadow: 0 6px 24px rgba(20,30,50,.14);
+            display: flex;
+            flex-direction: column;
+            padding: 22px 26px;
+            box-sizing: border-box;
+        }
+        .sheet__head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #0a4d9c; padding-bottom: 8px; }
+        .sheet__head h1 { font-size: 20px; margin: 0; color: #16213a; }
+        .sheet__head .meta { font-size: 12px; color: #6b7280; }
+
+        .plan-area { flex: 1 1 auto; position: relative; overflow: hidden; margin: 12px 0; }
+        .plan {
+            position: absolute; top: 50%; left: 50%;
             width: @(w)px; height: @(h)px;
-            transform-origin: top left;
+            transform: translate(-50%, -50%) scale(var(--s, 1));
+            border: 2px solid #333;
+            background: #fff;
         }
         .pbox {
             position: absolute; border: 1.5px solid #444; border-radius: 5px;
-            padding: 5px 7px; overflow: hidden; background: #fff;
-            font-size: 12px; line-height: 1.25;
+            overflow: hidden; background: #fff;
         }
-        .pbox .l { font-weight: 700; }
-        .pbox .o { font-size: 11px; color: #333; }
         .pbox.hl { background: #fff6e0; border-color: #e2231a; }
-        .print-table th { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: #888; }
-        @@media print { .no-print { display: none; } body { padding: 0; } }
+        .pbox .tag { position: absolute; top: 2px; left: 2px; background: #0a4d9c; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 4px; border-radius: 4px; }
+        .pbox.hl .tag { background: #e2231a; }
+        .pcells { display: flex; width: 100%; height: 100%; }
+        .pcells.tb { flex-direction: column; }
+        .pcell { flex: 1; min-width: 0; padding: 15px 5px 4px; font-size: 10px; line-height: 1.2; overflow: hidden; }
+        .pcells.lr .pcell + .pcell { border-left: 1.5px dashed #0a4d9c; padding-top: 4px; }
+        .pcells.tb .pcell + .pcell { border-top: 1.5px dashed #0a4d9c; }
+
+        .sheet__notes { font-size: 12px; color: #333; white-space: pre-wrap; border-top: 1px solid #ddd; padding-top: 8px; max-height: 110px; overflow: hidden; }
+        .sheet__notes:empty { display: none; }
+
+        .parts { max-width: 1040px; margin: 26px auto 0; }
+        .parts h2 { font-size: 15px; }
+        .parts table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .parts th { text-align: left; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: #888; border-bottom: 1.5px solid #ccc; padding: 6px 8px; }
+        .parts td { padding: 6px 8px; border-bottom: 1px solid #eee; }
+
+        @@media print {
+            body { background: #fff; padding: 0; }
+            .no-print { display: none !important; }
+            .sheet { box-shadow: none; margin: 0; width: 100%; height: 100%; padding: 0; }
+            .parts { page-break-before: always; margin: 0; max-width: none; }
+        }
     </style>
 </head>
 <body>
-    <div class="d-flex justify-content-between align-items-baseline mb-3">
-        <h1 class="h4 mb-0">@Model.Plan.Name <span class="text-muted fs-6 fw-normal">· gulvplan</span></h1>
-        <div class="no-print">
-            <button class="btn btn-primary btn-sm" onclick="window.print()">
-                <svg class="icon"><use href="#i-print" /></svg> Print
-            </button>
-        </div>
-    </div>
     <partial name="_Icons" />
 
-    <div style="overflow:auto">
-        <div class="print-floor" id="pf">
-            @foreach (var b in Model.Boxes)
-            {
-                <div class="pbox @(b.Highlight ? "hl" : "")"
-                     style="left:@(b.X)px;top:@(b.Y)px;width:@(b.Width)px;height:@(b.Height)px">
-                    <div class="l">@b.Label</div>
-                    <div class="o">@b.Offer</div>
-                </div>
-            }
+    <form class="toolbar no-print" method="post" asp-page-handler="Settings" asp-route-id="@Model.Plan.Id">
+        <div class="grow">
+            <label>Overskrift</label>
+            <input name="headline" class="form-control form-control-sm" value="@(Model.Plan.PrintHeadline ?? Model.Plan.Name)" />
         </div>
+        <div class="grow">
+            <label>Noter (printes under tegningen)</label>
+            <textarea name="notes" class="form-control form-control-sm" rows="1">@Model.Plan.PrintNotes</textarea>
+        </div>
+        <button type="submit" class="btn btn-outline-secondary btn-sm">Gem</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
+            <svg class="icon"><use href="#i-print" /></svg> Print
+        </button>
+    </form>
+
+    <div class="sheet">
+        <div class="sheet__head">
+            <h1>@Model.Headline</h1>
+            <div class="meta">@Model.Plan.Name · @DateTime.Now.ToString("dd-MM-yyyy")</div>
+        </div>
+
+        <div class="plan-area">
+            <div class="plan" id="plan">
+                @foreach (var b in Model.Boxes)
+                {
+                    var splitCls = b.Split == SplitMode.LeftRight ? "lr" : b.Split == SplitMode.TopBottom ? "tb" : "";
+                    <div class="pbox @(b.Highlight ? "hl" : "")"
+                         style="left:@(b.X)px;top:@(b.Y)px;width:@(b.Width)px;height:@(b.Height)px">
+                        <span class="tag">@b.Label</span>
+                        <div class="pcells @splitCls">
+                            <div class="pcell">@CellText(b, false)</div>
+                            @if (b.Split != SplitMode.None)
+                            {
+                                <div class="pcell">@CellText(b, true)</div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="sheet__notes">@Model.Plan.PrintNotes</div>
     </div>
 
-    <table class="table table-sm mt-4 print-table" style="max-width:700px">
-        <thead><tr><th>Nr.</th><th>Type</th><th>Ugens vare</th></tr></thead>
-        <tbody>
-        @foreach (var b in Model.Boxes)
-        {
-            <tr>
-                <td>@b.Label</td>
-                <td>@Rema.App.Pages.FloorPlan.PrintModel.KindLabel(b.Kind)</td>
-                <td>@b.Offer</td>
-            </tr>
-        }
-        </tbody>
-    </table>
+    <div class="parts">
+        <h2>Placeringer</h2>
+        <table>
+            <thead><tr><th style="width:70px">Nr.</th><th style="width:120px">Type</th><th>Ugens vare</th></tr></thead>
+            <tbody>
+            @foreach (var b in Model.Boxes)
+            {
+                <tr>
+                    <td><strong>@b.Label</strong></td>
+                    <td>@Rema.App.Pages.FloorPlan.PrintModel.KindLabel(b.Kind) @(b.Height > b.Width ? "(roteret)" : "")</td>
+                    <td>
+                        @if (b.Split == SplitMode.None)
+                        {
+                            @b.Offer
+                        }
+                        else
+                        {
+                            <span>@Rema.App.Pages.FloorPlan.PrintModel.SplitLabelA(b.Split): @b.Offer</span>
+                            <br />
+                            <span>@Rema.App.Pages.FloorPlan.PrintModel.SplitLabelB(b.Split): @b.OfferB</span>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
 
     <script>
-        // Skalér gulvet så det passer til papiret.
+        // Skalér tegningen så den ALTID fylder ét ark – uanset planens størrelse.
         (function () {
-            var pf = document.getElementById("pf");
-            var avail = Math.min(window.innerWidth - 60, 1050);
-            var scale = Math.min(1, avail / @w);
-            pf.style.transform = "scale(" + scale + ")";
-            pf.parentElement.style.height = (@h * scale + 20) + "px";
+            function fit() {
+                var area = document.querySelector(".plan-area");
+                var s = Math.min(area.clientWidth / @w, area.clientHeight / @h);
+                document.getElementById("plan").style.setProperty("--s", s.toFixed(4));
+            }
+            fit();
+            window.addEventListener("resize", fit);
+            window.addEventListener("beforeprint", fit);
         })();
     </script>
 </body>

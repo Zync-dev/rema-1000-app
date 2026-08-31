@@ -767,9 +767,8 @@ textarea.form-control { line-height: 1.55; }
   position: absolute;
   box-sizing: border-box;
   border: 2px solid var(--rema-blue);
-  border-radius: 8px;
+  border-radius: 7px;
   background: #fff;
-  padding: 5px 7px;
   overflow: hidden;
   cursor: grab;
   user-select: none;
@@ -777,15 +776,59 @@ textarea.form-control { line-height: 1.55; }
   box-shadow: var(--shadow-sm);
 }
 .fbox:active { cursor: grabbing; }
-.fbox.selected { border-color: var(--rema-red); box-shadow: 0 0 0 3px rgba(226, 35, 26, .25); }
+.fbox.selected { border-color: var(--rema-red); box-shadow: 0 0 0 3px rgba(226, 35, 26, .28); z-index: 5; }
 .fbox.is-highlight { background: #fff6e0; }
-.fbox-label { font-weight: 700; font-size: 13px; line-height: 1.15; color: var(--ink); }
-.fbox-offer { font-size: 11px; color: var(--ink-soft); white-space: pre-wrap; }
-.fbox-kind { position: absolute; right: 5px; bottom: 3px; font-size: 9px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-faint); }
-.fbox-resize { position: absolute; right: 0; bottom: 0; width: 15px; height: 15px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 45%, var(--rema-blue) 45%); border-bottom-right-radius: 6px; }
-.fbox.kind-gondolender { border-color: #5b6472; }
-.fbox.kind-koel { border-color: #1668c9; background: #eef5ff; }
-.fbox.kind-bordplads { border-color: #8a6d3b; }
+.fbox.is-fixed { border-style: solid; }
+
+/* Etiket-chip øverst til venstre */
+.fbox-tag {
+  position: absolute;
+  top: 3px; left: 3px;
+  z-index: 2;
+  background: var(--rema-blue);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 5px;
+}
+.fbox.is-highlight .fbox-tag { background: var(--rema-red); }
+
+/* Celler (én, eller to ved opdeling) */
+.fbox-cells { display: flex; width: 100%; height: 100%; }
+.fbox.split-tb .fbox-cells { flex-direction: column; }
+.fbox-cell {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  padding: 16px 6px 6px;
+  display: flex;
+  align-items: flex-start;
+  overflow: hidden;
+}
+.fbox-cell span { font-size: 11px; line-height: 1.2; color: var(--ink); white-space: pre-wrap; overflow: hidden; }
+.fbox.split-lr .fbox-cell + .fbox-cell { border-left: 2px dashed var(--rema-blue); padding-top: 6px; }
+.fbox.split-tb .fbox-cell + .fbox-cell { border-top: 2px dashed var(--rema-blue); }
+
+.fbox-kind {
+  position: absolute; right: 4px; bottom: 2px; z-index: 2;
+  font-size: 8px; text-transform: uppercase; letter-spacing: .03em;
+  color: var(--ink-faint); background: rgba(255,255,255,.75); padding: 0 2px; border-radius: 3px;
+}
+.fbox-resize {
+  position: absolute; right: 0; bottom: 0; width: 15px; height: 15px; z-index: 3;
+  cursor: nwse-resize;
+  background: linear-gradient(135deg, transparent 45%, var(--rema-blue) 45%);
+  border-bottom-right-radius: 5px;
+}
+
+/* Type-farver */
+.fbox.kind-halvpalle { border-color: #1668c9; }
+.fbox.kind-kvartpalle { border-color: #4a9bd8; }
+.fbox.kind-skraabord { border-color: #8a6d3b; }
+.fbox.kind-endeboks { border-color: #5b6472; }
+.fbox.kind-andet { border-color: #7a828f; border-style: dashed; }
 
 .save-status { font-size: .82rem; font-weight: 600; display: inline-flex; align-items: center; gap: .3rem; }
 

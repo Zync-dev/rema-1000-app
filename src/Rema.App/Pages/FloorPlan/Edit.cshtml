@@ -28,28 +28,28 @@
         <div class="card">
             <div class="card-body">
                 <div class="editor-toolbar">
-                    <button id="btnAdd" class="btn btn-sm btn-primary"><svg class="icon"><use href="#i-plus" /></svg> Placering</button>
+                    <button id="btnAdd" class="btn btn-sm btn-primary"><svg class="icon"><use href="#i-plus" /></svg> Tilføj</button>
                     <select id="newKind" class="form-select form-select-sm w-auto">
-                        @foreach (var (value, label) in Model.Kinds)
+                        @foreach (var kind in Model.Kinds)
                         {
-                            <option value="@value">@label</option>
+                            <option value="@kind.Value">@kind.Label</option>
                         }
                     </select>
                     <div class="vr"></div>
                     <label>Zoom</label>
-                    <input id="zoom" type="range" min="0.3" max="1.5" step="0.05" value="0.75" class="form-range" style="width:120px" />
+                    <input id="zoom" type="range" min="0.25" max="1.4" step="0.05" value="0.6" class="form-range" style="width:120px" />
                     <div class="vr"></div>
-                    <label>Lærred</label>
-                    <input id="canvasW" type="number" class="form-control form-control-sm" style="width:78px" min="200" max="4000" />
+                    <label>Lærred (cm)</label>
+                    <input id="canvasW" type="number" class="form-control form-control-sm" style="width:80px" min="200" max="6000" />
                     <span class="text-muted">×</span>
-                    <input id="canvasH" type="number" class="form-control form-control-sm" style="width:78px" min="200" max="4000" />
+                    <input id="canvasH" type="number" class="form-control form-control-sm" style="width:80px" min="200" max="6000" />
                 </div>
 
                 <div id="floorScroll" class="floor-scroll">
                     <div id="floor" class="floor"></div>
                 </div>
                 <p class="form-text mt-2 mb-0">
-                    Træk for at flytte · træk i hjørnet for at ændre størrelse · klik for at redigere.
+                    Træk for at flytte · klik for at redigere · faste typer har rigtig størrelse (kan roteres).
                 </p>
             </div>
         </div>
@@ -67,15 +67,44 @@
                     <div>
                         <label class="form-label">Type</label>
                         <select id="pKind" class="form-select form-select-sm">
-                            @foreach (var (value, label) in Model.Kinds)
+                            @foreach (var kind in Model.Kinds)
+                            {
+                                <option value="@kind.Value">@kind.Label</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btnRotate" type="button" class="btn btn-outline-secondary btn-sm">
+                            <svg class="icon"><use href="#i-rotate" /></svg> Rotér 90°
+                        </button>
+                        <span id="pSize" class="form-text m-0"></span>
+                    </div>
+                    <div id="pSizeEdit" class="row g-2 d-none">
+                        <div class="col-6">
+                            <label class="form-label">Bredde (cm)</label>
+                            <input id="pW" class="form-control form-control-sm" type="number" min="30" max="6000" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Dybde (cm)</label>
+                            <input id="pH" class="form-control form-control-sm" type="number" min="30" max="6000" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label">Opdeling</label>
+                        <select id="pSplit" class="form-select form-select-sm">
+                            @foreach (var (value, label) in Rema.App.Pages.FloorPlan.EditModel.SplitOptions)
                             {
                                 <option value="@value">@label</option>
                             }
                         </select>
                     </div>
                     <div>
-                        <label class="form-label">Ugens vare</label>
-                        <textarea id="pOffer" class="form-control form-control-sm" rows="3" maxlength="240" placeholder="Varenavn · pris"></textarea>
+                        <label class="form-label" id="pOfferLabel">Ugens vare</label>
+                        <textarea id="pOffer" class="form-control form-control-sm" rows="2" maxlength="240" placeholder="Varenavn · pris"></textarea>
+                    </div>
+                    <div id="pOfferBWrap" class="d-none">
+                        <label class="form-label" id="pOfferBLabel">Ugens vare (B)</label>
+                        <textarea id="pOfferB" class="form-control form-control-sm" rows="2" maxlength="240"></textarea>
                     </div>
                     <div class="form-check">
                         <input id="pHighlight" type="checkbox" class="form-check-input" />
@@ -95,10 +124,10 @@
 
 @section Scripts {
     <script id="planData" type="application/json">@Html.Raw(Model.PlanJson)</script>
+    <script id="kindData" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Kinds,
+        new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))</script>
     <script>
-        window.floorPlanConfig = {
-            saveUrl: '@Url.Page("Edit", "Save", new { id = Model.Plan.Id })',
-        };
+        window.floorPlanConfig = { saveUrl: '@Url.Page("Edit", "Save", new { id = Model.Plan.Id })' };
     </script>
     <script src="~/js/floorplan.js" asp-append-version="true"></script>
 }

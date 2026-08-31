@@ -35,8 +35,8 @@ public class FloorPlanTests
                 CanvasHeight = 800,
                 Boxes =
                 [
-                    new() { Label = "A1", Kind = "Palle", X = 10, Y = 10, Width = 100, Height = 80, Offer = "Cola 5 kr" },
-                    new() { Label = "A2", Kind = "Gondolender", X = 200, Y = 10, Width = 200, Height = 60 },
+                    new() { Label = "A1", Kind = "FuldPalle", X = 10, Y = 10, Width = 100, Height = 80, Offer = "Cola 5 kr" },
+                    new() { Label = "A2", Kind = "Endeboks", X = 200, Y = 10, Width = 200, Height = 60 },
                 ],
             });
             Assert.IsType<JsonResult>(result);
@@ -47,7 +47,10 @@ public class FloorPlanTests
         {
             var boxes = await db.FloorBoxes.OrderBy(b => b.Label).ToListAsync();
             Assert.Equal(2, boxes.Count);
-            Assert.Equal(BoxKind.Gondolender, boxes[1].Kind);
+            Assert.Equal(BoxKind.Endeboks, boxes[1].Kind);
+            // Faste typer får deres rigtige størrelse uanset hvad klienten sendte.
+            Assert.Equal((120, 80), (boxes[0].Width, boxes[0].Height));
+            Assert.Equal((133, 90), (boxes[1].Width, boxes[1].Height));
             Assert.All(boxes, b => Assert.Equal(store, b.StoreId));
             keepId = boxes[0].Id;
 
@@ -65,8 +68,8 @@ public class FloorPlanTests
                 CanvasHeight = 800,
                 Boxes =
                 [
-                    new() { Id = keepId, Label = "A1-ny", Kind = "Palle", X = 10, Y = 10, Width = 100, Height = 80 },
-                    new() { Label = "A3", Kind = "Stakke", X = 400, Y = 400, Width = 90, Height = 90 },
+                    new() { Id = keepId, Label = "A1-ny", Kind = "FuldPalle", X = 10, Y = 10, Width = 100, Height = 80 },
+                    new() { Label = "A3", Kind = "Andet", X = 400, Y = 400, Width = 90, Height = 90 },
                 ],
             });
         }
@@ -91,19 +94,70 @@ public class FloorPlanTests
             {
                 CanvasWidth = 999999,
                 CanvasHeight = -5,
-                Boxes = [new() { Label = "X", Kind = "Palle", X = -100, Y = -100, Width = 5, Height = 999999 }],
+                Boxes = [new() { Label = "X", Kind = "Andet", X = -100, Y = -100, Width = 5, Height = 999999 }],
             });
         }
 
         await using (var db = Ctx(store, dbName))
         {
             var plan = await db.FloorPlans.Include(p => p.Boxes).FirstAsync(p => p.Id == planId);
-            Assert.Equal(4000, plan.CanvasWidth);
+            Assert.Equal(6000, plan.CanvasWidth);
             Assert.Equal(200, plan.CanvasHeight);
             var box = plan.Boxes.Single();
             Assert.Equal(0, box.X);
-            Assert.Equal(24, box.Width);
-            Assert.Equal(4000, box.Height);
+            Assert.Equal(30, box.Width);
+            Assert.Equal(6000, box.Height);
+        }
+    }
+
+    [Fact]
+    public async Task Save_keeps_split_cells_and_rotated_fixed_size()
+    {
+        var store = Guid.NewGuid();
+        var dbName = nameof(Save_keeps_split_cells_and_rotated_fixed_size);
+        var planId = await SeedPlanAsync(store, dbName);
+
+        await using (var db = Ctx(store, dbName))
+        {
+            await new EditModel(db).OnPostSaveAsync(planId, new EditModel.PlanDto
+            {
+                CanvasWidth = 1400, CanvasHeight = 900,
+                Boxes =
+                [
+                    // Delt palle: pærer / æbler
+                    new() { Label = "A1", Kind = "FuldPalle", Split = "LeftRight", Offer = "Pærer", OfferB = "Æbler", X = 0, Y = 0, Width = 120, Height = 80 },
+                    // Roteret fuld palle (dybde > bredde)
+                    new() { Label = "A2", Kind = "FuldPalle", X = 300, Y = 0, Width = 80, Height = 120 },
+                ],
+            });
+        }
+
+        await using (var db = Ctx(store, dbName))
+        {
+            var boxes = await db.FloorBoxes.OrderBy(b => b.Label).ToListAsync();
+            Assert.Equal(SplitMode.LeftRight, boxes[0].Split);
+            Assert.Equal("Pærer", boxes[0].Offer);
+            Assert.Equal("Æbler", boxes[0].OfferB);
+            Assert.Equal((120, 80), (boxes[0].Width, boxes[0].Height));
+            // roteret: den faste størrelse byttes om
+            Assert.Equal((80, 120), (boxes[1].Width, boxes[1].Height));
+        }
+
+        // Fjern opdelingen igen -> celle B ryddes
+        await using (var db = Ctx(store, dbName))
+        {
+            var a1 = await db.FloorBoxes.FirstAsync(b => b.Label == "A1");
+            await new EditModel(db).OnPostSaveAsync(planId, new EditModel.PlanDto
+            {
+                CanvasWidth = 1400, CanvasHeight = 900,
+                Boxes = [new() { Id = a1.Id, Label = "A1", Kind = "FuldPalle", Split = "None", Offer = "Pærer", OfferB = "Æbler", Width = 120, Height = 80 }],
+            });
+        }
+        await using (var db = Ctx(store, dbName))
+        {
+            var a1 = await db.FloorBoxes.SingleAsync();
+            Assert.Equal(SplitMode.None, a1.Split);
+            Assert.Null(a1.OfferB);
         }
     }
 
