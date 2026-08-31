@@ -25,30 +25,40 @@
         .toolbar .grow { flex: 1 1 260px; }
         .toolbar label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; display: block; margin-bottom: 3px; }
 
-        /* Ét ark = A4 landscape brugbart areal (297×210mm − 8mm margen hele vejen rundt). */
+        /* Ét ark = A4 landscape brugbart areal (297×210mm − 8mm margen hele vejen rundt).
+           Alt er absolut placeret, så layoutet er identisk på skærm og i print. */
         .sheet {
+            position: relative;
             width: 281mm;
             height: 194mm;
             margin: 0 auto;
             background: #fff;
             box-shadow: 0 6px 24px rgba(20,30,50,.14);
-            display: flex;
-            flex-direction: column;
-            padding: 6mm 8mm;
             box-sizing: border-box;
+            overflow: hidden;
         }
-        .sheet__head { flex: 0 0 auto; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #0a4d9c; padding-bottom: 8px; }
+        .sheet__head {
+            position: absolute; top: 6mm; left: 8mm; right: 8mm; height: 12mm;
+            display: flex; justify-content: space-between; align-items: baseline;
+            border-bottom: 2px solid #0a4d9c;
+        }
         .sheet__head h1 { font-size: 20px; margin: 0; color: #16213a; }
         .sheet__head .meta { font-size: 12px; color: #6b7280; }
 
-        .plan-area { flex: 1 1 auto; min-height: 0; position: relative; overflow: hidden; margin: 10px 0; }
+        /* Fast rektangel til tegningen – hverken flex eller indhold styrer højden. */
+        .plan-area {
+            position: absolute; left: 8mm; right: 8mm; top: 21mm; bottom: 30mm;
+            overflow: hidden;
+        }
+        .sheet.no-notes .plan-area { bottom: 8mm; }
         .plan {
-            position: absolute; top: 50%; left: 50%;
+            position: absolute; top: 0; left: 0;
             width: @(w)px; height: @(h)px;
-            transform: translate(-50%, -50%) scale(var(--s, 0.4));
-            border: 2px solid #333;
+            transform-origin: 0 0;
+            transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(var(--s, 0.4));
             background: #fff;
         }
+        .plan-area { border: 1.5px solid #333; }
         .pbox {
             position: absolute; border: 1.5px solid #444; border-radius: 5px;
             overflow: hidden; background: #fff;
@@ -62,7 +72,11 @@
         .pcells.lr .pcell + .pcell { border-left: 1.5px dashed #0a4d9c; padding-top: 4px; }
         .pcells.tb .pcell + .pcell { border-top: 1.5px dashed #0a4d9c; }
 
-        .sheet__notes { flex: 0 0 auto; font-size: 12px; color: #333; white-space: pre-wrap; border-top: 1px solid #ddd; padding-top: 8px; max-height: 26mm; overflow: hidden; }
+        .sheet__notes {
+            position: absolute; left: 8mm; right: 8mm; bottom: 6mm; height: 22mm;
+            font-size: 12px; color: #333; white-space: pre-wrap;
+            border-top: 1px solid #ddd; padding-top: 6px; overflow: hidden;
+        }
         .sheet__notes:empty { display: none; }
 
         .parts { width: 281mm; max-width: 100%; margin: 26px auto 0; }
@@ -99,7 +113,7 @@
         </button>
     </form>
 
-    <div class="sheet">
+    <div class="sheet @(string.IsNullOrWhiteSpace(Model.Plan.PrintNotes) ? "no-notes" : "")">
         <div class="sheet__head">
             <h1>@Model.Headline</h1>
             <div class="meta">@Model.Plan.Name · @DateTime.Now.ToString("dd-MM-yyyy")</div>
@@ -157,17 +171,45 @@
     </div>
 
     <script>
-        // Skalér tegningen så den ALTID fylder ét ark – uanset planens størrelse.
+        // Zoom ind på de faktiske placeringer, så tegningen ALTID fylder ét ark –
+        // uanset hvor stort lærredet er sat til.
         (function () {
             var PLAN_W = @w, PLAN_H = @h;
             var plan = document.getElementById("plan");
 
+            function contentBox() {
+                var els = plan.querySelectorAll(".pbox");
+                if (!els.length) return { x: 0, y: 0, w: PLAN_W, h: PLAN_H };
+                var x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+                els.forEach(function (el) {
+                    var x = parseFloat(el.style.left) || 0, y = parseFloat(el.style.top) || 0;
+                    var w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+                    x1 = Math.min(x1, x); y1 = Math.min(y1, y);
+                    x2 = Math.max(x2, x + w); y2 = Math.max(y2, y + h);
+                });
+                var padX = Math.max(30, (x2 - x1) * 0.06);
+                var padY = Math.max(30, (y2 - y1) * 0.06);
+                x1 = Math.max(0, x1 - padX); y1 = Math.max(0, y1 - padY);
+                x2 = Math.min(PLAN_W, x2 + padX); y2 = Math.min(PLAN_H, y2 + padY);
+                return { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+            }
+
             function fit() {
                 var area = document.querySelector(".plan-area");
                 var aw = area.clientWidth, ah = area.clientHeight;
-                if (aw < 10 || ah < 10) return;               // layout ikke klar – behold fallback
-                var s = Math.min(aw / PLAN_W, ah / PLAN_H);
-                plan.style.setProperty("--s", (s > 0 ? s : 0.4).toFixed(4));
+                if (aw < 10 || ah < 10) return;               // layout ikke klar
+
+                var b = contentBox();
+                var s = Math.min(aw / b.w, ah / b.h, 4);
+                if (!(s > 0)) s = 0.4;
+
+                // Placér indholdets midte i midten af tegneområdet (transform-origin 0 0).
+                var tx = aw / 2 - (b.x + b.w / 2) * s;
+                var ty = ah / 2 - (b.y + b.h / 2) * s;
+
+                plan.style.setProperty("--s", s.toFixed(4));
+                plan.style.setProperty("--tx", tx.toFixed(1) + "px");
+                plan.style.setProperty("--ty", ty.toFixed(1) + "px");
             }
 
             fit();
