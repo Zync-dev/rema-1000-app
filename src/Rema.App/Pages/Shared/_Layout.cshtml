@@ -22,61 +22,69 @@
 <body>
     <partial name="_Icons" />
 
-    <header class="rema-header">
-        <nav class="navbar navbar-expand-lg">
-            <div class="container">
-                <a class="navbar-brand" asp-page="/Index">
-                    <span class="rema-logo-chip">
-                        <img src="~/img/rema-logo.svg" alt="Rema 1000" class="rema-logo"
-                             onerror="this.closest('.navbar-brand').classList.add('logo-missing')" />
-                        <span class="rema-wordmark">REMA&nbsp;1000</span>
-                    </span>
-                    <span class="rema-subbrand">Butiksværktøjer</span>
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Vis menu">
-                    <span class="navbar-toggler-icon"></span>
+    @{ var authed = User.Identity?.IsAuthenticated == true; }
+    <header class="appbar">
+        <div class="container appbar__inner">
+            <a class="appbar__brand" asp-page="/Index">
+                <span class="appbar__logo">
+                    <img src="~/img/rema-logo.svg" alt="Rema 1000"
+                         onerror="this.closest('.appbar__brand').classList.add('brand--nologo')" />
+                    <span class="appbar__wordmark">REMA&nbsp;1000</span>
+                </span>
+                <span class="appbar__product">Butiks&shy;værktøjer</span>
+            </a>
+
+            @if (authed)
+            {
+                <button class="appbar__toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="appnav" aria-label="Menu">
+                    <span></span><span></span><span></span>
                 </button>
-                <div class="collapse navbar-collapse" id="mainNav">
-                    @if (User.Identity?.IsAuthenticated == true)
-                    {
-                        <div class="rema-nav me-auto">
-                            <a class="nav-link @NavActive("/Index")" asp-page="/Index">
-                                <svg class="icon"><use href="#i-grid" /></svg> Oversigt
-                            </a>
-                            <a class="nav-link @NavActive("/Calculator")" asp-page="/Calculator/Index">
-                                <svg class="icon"><use href="#i-calc" /></svg> Avancekalkulator
-                            </a>
-                            <a class="nav-link @NavActive("/FloorPlan")" asp-page="/FloorPlan/Index">
-                                <svg class="icon"><use href="#i-floor" /></svg> Gulvplan
-                            </a>
-                            <a class="nav-link @NavActive("/FacebookPost")" asp-page="/FacebookPost/Index">
-                                <svg class="icon"><use href="#i-megaphone" /></svg> Facebook-opslag
-                            </a>
-                        </div>
-                        <div class="rema-actions d-flex align-items-center gap-3">
-                            @if (!string.IsNullOrEmpty(storeName))
-                            {
-                                <span class="rema-store d-inline-flex align-items-center gap-2">
-                                    <svg class="icon"><use href="#i-store" /></svg>@storeName
-                                </span>
-                            }
-                            <form asp-page="/Account/Logout" method="post" class="m-0">
-                                <button type="submit" class="btn btn-sm btn-outline-light">
-                                    <svg class="icon"><use href="#i-logout" /></svg> Log ud
+
+                <nav class="appbar__nav" id="appnav">
+                    <a class="appbar__link @NavActive("/Index")" asp-page="/Index">
+                        <svg class="icon"><use href="#i-grid" /></svg><span>Oversigt</span>
+                    </a>
+                    <a class="appbar__link @NavActive("/Calculator")" asp-page="/Calculator/Index">
+                        <svg class="icon"><use href="#i-calc" /></svg><span>Avancekalkulator</span>
+                    </a>
+                    <a class="appbar__link @NavActive("/FloorPlan")" asp-page="/FloorPlan/Index">
+                        <svg class="icon"><use href="#i-floor" /></svg><span>Gulvplan</span>
+                    </a>
+                    <a class="appbar__link @NavActive("/FacebookPost")" asp-page="/FacebookPost/Index">
+                        <svg class="icon"><use href="#i-megaphone" /></svg><span>Facebook-opslag</span>
+                    </a>
+
+                    <div class="appbar__user" data-menu>
+                        <button class="appbar__userbtn" type="button" data-menu-btn aria-expanded="false" aria-haspopup="true">
+                            <svg class="icon"><use href="#i-store" /></svg>
+                            <span class="appbar__storename">@(string.IsNullOrEmpty(storeName) ? "Min butik" : storeName)</span>
+                            <svg class="icon appbar__chev"><use href="#i-chevron-down" /></svg>
+                        </button>
+                        <div class="appbar__menu" data-menu-panel>
+                            <div class="appbar__menu-head">
+                                <strong>@(string.IsNullOrEmpty(storeName) ? "Min butik" : storeName)</strong>
+                                @if (!string.IsNullOrEmpty(displayName))
+                                {
+                                    <span>@displayName</span>
+                                }
+                            </div>
+                            <form asp-page="/Account/Logout" method="post">
+                                <button type="submit" class="appbar__menu-item">
+                                    <svg class="icon"><use href="#i-logout" /></svg><span>Log ud</span>
                                 </button>
                             </form>
                         </div>
-                    }
-                    else
-                    {
-                        <div class="rema-actions d-flex align-items-center gap-2 ms-auto">
-                            <a class="btn btn-sm btn-outline-light" asp-page="/Account/Login">Log ind</a>
-                            <a class="btn btn-sm btn-light" asp-page="/Account/Register">Opret butik</a>
-                        </div>
-                    }
+                    </div>
+                </nav>
+            }
+            else
+            {
+                <div class="appbar__auth">
+                    <a class="btn btn-sm btn-ghost-light" asp-page="/Account/Login">Log ind</a>
+                    <a class="btn btn-sm btn-on-blue" asp-page="/Account/Register">Opret butik</a>
                 </div>
-            </div>
-        </nav>
+            }
+        </div>
     </header>
 
     <div class="container py-4">
