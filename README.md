@@ -46,7 +46,7 @@ tests/Rema.App.Tests   xUnit (beregning + tenant-isolation)
    dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=rema_app;Username=rema;Password=rema"
    ```
 
-   En `postgres://…`-URL (som Neon/Fly udleverer) virker også direkte.
+   En `postgres://…`-URL (som Neon og Railway udleverer) virker også direkte.
 
 3. **Kør.** Migrationer køres automatisk ved opstart.
 
@@ -86,10 +86,39 @@ dotnet ef database update            --project src/Rema.App.Data --startup-proje
 dotnet test
 ```
 
-## Deployment (skitse)
+## Deploy på Railway
 
-- **Database:** Neon free tier, region Frankfurt.
-- **Web:** Fly.io (`fly launch`, region `fra`) eller Azure App Service (West Europe).
-  Sæt miljøvariablen `ConnectionStrings__DefaultConnection` (eller `DATABASE_URL`).
-- Alt data holdes i EU (GDPR – løsningen indeholder medarbejderoplysninger).
+Repoet er klar til Railway: `Dockerfile` (multi-stage, non-root) + `railway.json`
+(Dockerfile-builder, healthcheck på `/healthz`, 1 replica).
+
+1. **Push repoet til GitHub.**
+2. Railway → **New Project → Deploy from GitHub repo** → vælg repoet.
+   Railway læser `railway.json` og bygger via `Dockerfile`.
+3. **Database** – vælg én:
+   - **Behold Neon:** i app-servicens **Variables**, tilføj
+     `DATABASE_URL` = din Neon-forbindelsesstreng (`postgresql://…`).
+   - **Railway Postgres:** tilføj en **PostgreSQL**-service i projektet, og sæt så
+     på app-servicen `DATABASE_URL` = `${{Postgres.DATABASE_URL}}` (reference-variabel).
+   Appen accepterer også `ConnectionStrings__DefaultConnection` i stedet.
+4. **Domæne:** app-servicen → **Settings → Networking → Generate Domain**.
+5. Første deploy kører migrationerne automatisk ved opstart. Færdig.
+
+Ingen andre variabler er nødvendige – `PORT` sættes af Railway, `ASPNETCORE_ENVIRONMENT=Production`
+sættes i `Dockerfile`, og appen kører bag Railways TLS-proxy (`UseForwardedHeaders`,
+`Secure`-cookies). Data Protection-nøglerne ligger i databasen, så et redeploy
+logger ikke nogen ud.
+
+**Behold 1 replica** (migrationer kører ved opstart og bør ikke race). Skal der
+skaleres, så flyt migrationer til et separat trin.
+
+### GDPR / drift
+
+- Vælg en **EU-region** for både app og database (løsningen indeholder medarbejderoplysninger).
 - Erstat `src/Rema.App/wwwroot/img/rema-logo.svg` med det officielle Rema 1000-logo.
+
+## Kør containeren lokalt (valgfrit)
+
+```bash
+docker build -t rema-app .
+docker run -p 8080:8080 -e DATABASE_URL="postgresql://…" rema-app
+```

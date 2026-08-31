@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Rema.App.Data;
 using Rema.App.Data.Entities;
@@ -6,6 +7,19 @@ using Rema.App.Data.Tenancy;
 using Rema.App.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Railway (og de fleste PaaS) tildeler porten via miljøvariablen PORT.
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(port))
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
+// Kør bag Railways proxy: stol på X-Forwarded-* så HTTPS/klient-IP er korrekt.
+builder.Services.Configure<ForwardedHeadersOptions>(o =>
+{
+    o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    o.KnownNetworks.Clear();
+    o.KnownProxies.Clear();
+});
 
 // --- Database ---------------------------------------------------------------
 var connectionString =
@@ -75,6 +89,9 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("ErKoebmand", p => p.RequireRole(RoleNames.Koebmand));
 });
 
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>("database");
+
 // --- Razor Pages ---------------------------------------------------------
 builder.Services.AddRazorPages(options =>
 {
@@ -88,6 +105,8 @@ builder.Services.AddRazorPages(options =>
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
@@ -96,15 +115,16 @@ if (!app.Environment.IsDevelopment())
 else
 {
     app.UseDeveloperExceptionPage();
+    app.UseHttpsRedirection();
 }
 
-app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
 app.MapRazorPages().WithStaticAssets();
+app.MapHealthChecks("/healthz");
 
 // Migrér + seed roller ved opstart (kan slås fra med RunMigrationsAtStartup=false).
 if (app.Configuration.GetValue("RunMigrationsAtStartup", true))

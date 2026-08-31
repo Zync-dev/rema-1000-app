@@ -1,0 +1,20 @@
+# Build output
+**/bin/
+**/obj/
+**/out/
+
+# Tooling / IDE
+.git/
+.gitignore
+.vs/
+.vscode/
+.idea/
+.claude/
+**/*.user
+**/.DS_Store
+
+# Not needed in the image
+tests/
+docker-compose.yml
+README.md
+*.md

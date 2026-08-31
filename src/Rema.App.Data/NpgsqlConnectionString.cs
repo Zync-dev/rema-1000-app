@@ -3,7 +3,7 @@ namespace Rema.App.Data;
 /// <summary>
 /// Hjælper til at acceptere en forbindelse enten som Npgsql-nøgleformat
 /// (<c>Host=...;Database=...;Username=...</c>) eller som en URL
-/// (<c>postgres://bruger:kode@vært/db</c>), som fx Neon og Fly.io udleverer.
+/// (<c>postgres://bruger:kode@vært/db</c>), som fx Neon, Railway og Fly.io udleverer.
 /// </summary>
 public static class NpgsqlConnectionString
 {
@@ -30,15 +30,18 @@ public static class NpgsqlConnectionString
             Password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : null,
         };
 
+        // Uden eksplicit sslmode: Prefer virker både med udbydere der kræver TLS
+        // (Neon) og med interne net uden TLS (Railways private netværk).
         var sslMode = GetQueryValue(uri.Query, "sslmode");
         builder.SslMode = sslMode?.ToLowerInvariant() switch
         {
             "disable" => Npgsql.SslMode.Disable,
             "allow" => Npgsql.SslMode.Allow,
             "prefer" => Npgsql.SslMode.Prefer,
+            "require" => Npgsql.SslMode.Require,
             "verify-ca" => Npgsql.SslMode.VerifyCA,
             "verify-full" => Npgsql.SslMode.VerifyFull,
-            _ => Npgsql.SslMode.Require,
+            _ => Npgsql.SslMode.Prefer,
         };
 
         return builder.ConnectionString;
