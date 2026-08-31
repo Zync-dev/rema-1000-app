@@ -26,8 +26,11 @@
         <nav class="navbar navbar-expand-lg">
             <div class="container">
                 <a class="navbar-brand" asp-page="/Index">
-                    <img src="~/img/rema-logo.svg" alt="" height="26" onerror="this.style.display='none'" />
-                    <span class="rema-wordmark">REMA&nbsp;1000</span>
+                    <span class="rema-logo-chip">
+                        <img src="~/img/rema-logo.svg" alt="Rema 1000" class="rema-logo"
+                             onerror="this.closest('.navbar-brand').classList.add('logo-missing')" />
+                        <span class="rema-wordmark">REMA&nbsp;1000</span>
+                    </span>
                     <span class="rema-subbrand">Butiksværktøjer</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Vis menu">

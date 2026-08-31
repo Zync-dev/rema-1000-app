@@ -98,7 +98,24 @@ a:hover { text-decoration-color: var(--rema-blue-100); }
 
 .rema-header .navbar { padding-top: .55rem; padding-bottom: .55rem; }
 
-.rema-header .navbar-brand { display: flex; align-items: center; gap: .55rem; padding: 0; }
+.rema-header .navbar-brand { display: flex; align-items: center; gap: .6rem; padding: 0; }
+
+/* Det officielle logo (blå tekst, rød kant) ligger på en hvid brik, så det
+   ikke forsvinder på den blå header. */
+.rema-logo-chip {
+  display: inline-flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 8px;
+  padding: .3rem .55rem;
+  box-shadow: 0 1px 3px rgba(6, 49, 95, .25);
+}
+.rema-logo { height: 22px; width: auto; display: block; }
+.navbar-brand .rema-wordmark { display: none; }          /* skjult når logoet er der */
+.navbar-brand.logo-missing .rema-logo-chip { background: transparent; box-shadow: none; padding: 0; }
+.navbar-brand.logo-missing .rema-logo { display: none; }
+.navbar-brand.logo-missing .rema-wordmark { display: inline; }
+
 .rema-wordmark {
   font-weight: 800;
   letter-spacing: .02em;
@@ -483,9 +500,17 @@ textarea.form-control { line-height: 1.55; }
    ============================================================ */
 .auth-wrap { max-width: 480px; margin: 2.5rem auto; }
 .auth-wrap--wide { max-width: 640px; }
-.auth-brand { text-align: center; margin-bottom: 1.25rem; }
-.auth-brand .rema-wordmark { color: var(--rema-blue); font-size: 1.3rem; }
-.auth-brand .rema-subbrand { color: var(--ink-faint); border-color: var(--border-strong); }
+.auth-brand { text-align: center; margin-bottom: 1.5rem; }
+.auth-brand .auth-logo { height: 30px; width: auto; }
+.auth-brand .rema-wordmark { display: inline-block; color: var(--rema-blue); font-size: 1.4rem; }
+.auth-brand .rema-subbrand {
+  display: block;
+  margin-top: .5rem;
+  color: var(--ink-faint);
+  border: 0;
+  padding: 0;
+  font-size: .72rem;
+}
 
 /* ============================================================
    Stat / result panel (avancekalkulator)
