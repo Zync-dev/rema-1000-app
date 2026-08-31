@@ -17,15 +17,20 @@ RUN dotnet publish src/Rema.App/Rema.App.csproj -c Release -o /app --no-restore 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
-# APP_UID (1654) og bruger "app" er indbygget i .NET-imaget.
-ENV ASPNETCORE_ENVIRONMENT=Production \
-    DOTNET_RUNNING_IN_CONTAINER=true \
-    ASPNETCORE_URLS=http://0.0.0.0:8080
+# libgssapi-krb5-2: Npgsql prøver at loade GSSAPI ved forbindelse; uden den
+# spammes loggen med "Cannot load library libgssapi_krb5.so.2".
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/*
 
+ENV ASPNETCORE_ENVIRONMENT=Production \
+    DOTNET_RUNNING_IN_CONTAINER=true
+
+# APP_UID (1654) og bruger "app" er indbygget i .NET-imaget.
 COPY --from=build --chown=$APP_UID:$APP_UID /app ./
 USER $APP_UID
 
-# Railway sætter selv PORT; 8080 er kun standard hvis den mangler.
+# Program.cs binder til $PORT (ellers 8080). EXPOSE er kun dokumentation.
 EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "Rema.App.dll"]

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Rema.App.Data;
@@ -10,8 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Railway (og de fleste PaaS) tildeler porten via miljøvariablen PORT.
 var port = Environment.GetEnvironmentVariable("PORT");
-if (!string.IsNullOrWhiteSpace(port))
-    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+builder.WebHost.UseUrls($"http://0.0.0.0:{(string.IsNullOrWhiteSpace(port) ? "8080" : port)}");
 
 // Kør bag Railways proxy: stol på X-Forwarded-* så HTTPS/klient-IP er korrekt.
 builder.Services.Configure<ForwardedHeadersOptions>(o =>
@@ -83,6 +83,16 @@ builder.Services.AddDataProtection()
     .PersistKeysToDbContext<AppDbContext>()
     .SetApplicationName("rema-app");
 
+// Krypter selve nøgleringen i databasen med en AES-nøgle fra miljøet, så et
+// databaselæk ikke også afslører auth-cookie-nøgler og gemte API-nøgler.
+var dpKeyB64 = Environment.GetEnvironmentVariable("DATAPROTECTION_KEY").NullIfBlank();
+if (dpKeyB64 is not null)
+{
+    var masterKey = new DataProtectionMasterKey(Convert.FromBase64String(dpKeyB64));
+    builder.Services.AddSingleton(masterKey);
+    builder.Services.Configure<KeyManagementOptions>(o => o.XmlEncryptor = new AesXmlEncryptor(masterKey));
+}
+
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("ErLeder", p => p.RequireRole(RoleNames.Koebmand, RoleNames.Souschef));
@@ -104,6 +114,11 @@ builder.Services.AddRazorPages(options =>
 });
 
 var app = builder.Build();
+
+if (dpKeyB64 is null && !app.Environment.IsDevelopment())
+    app.Logger.LogWarning(
+        "DATAPROTECTION_KEY er ikke sat. Data Protection-nøgleringen (auth-cookies + gemte "
+        + "Gemini API-nøgler) gemmes UKRYPTERET i databasen. Sæt en base64-nøgle: openssl rand -base64 32");
 
 app.UseForwardedHeaders();
 
