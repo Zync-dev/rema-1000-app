@@ -28,28 +28,64 @@
         <div class="card">
             <div class="card-body">
                 <div class="editor-toolbar">
-                    <button id="btnAdd" class="btn btn-sm btn-primary"><svg class="icon"><use href="#i-plus" /></svg> Tilføj</button>
-                    <select id="newKind" class="form-select form-select-sm w-auto">
-                        @foreach (var kind in Model.Kinds)
-                        {
-                            <option value="@kind.Value">@kind.Label</option>
-                        }
-                    </select>
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Værktøj">
+                        <button type="button" class="btn btn-outline-secondary tool-btn active" data-mode="select" title="Vælg og flyt">
+                            <svg class="icon"><use href="#i-cursor" /></svg>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary tool-btn" data-mode="pen" title="Tegn frihånd">
+                            <svg class="icon"><use href="#i-pencil" /></svg>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary tool-btn" data-mode="line" title="Linje (fx væg)">
+                            <svg class="icon"><use href="#i-line" /></svg>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary tool-btn" data-mode="rect" title="Firkant (fx rum)">
+                            <svg class="icon"><use href="#i-square" /></svg>
+                        </button>
+                    </div>
+
+                    <div class="vr"></div>
+
+                    <div id="addGroup" class="d-flex align-items-center gap-2">
+                        <button id="btnAdd" class="btn btn-sm btn-primary"><svg class="icon"><use href="#i-plus" /></svg> Tilføj</button>
+                        <select id="newKind" class="form-select form-select-sm w-auto">
+                            @foreach (var kind in Model.Kinds)
+                            {
+                                <option value="@kind.Value">@kind.Label</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div id="drawGroup" class="d-none align-items-center gap-2">
+                        <span class="swatches" id="drawColors">
+                            @foreach (var c in Rema.App.Pages.FloorPlan.EditModel.ShapePalette)
+                            {
+                                <button type="button" class="swatch" data-color="@c" style="--sw:@c" title="Farve"></button>
+                            }
+                        </span>
+                        <select id="drawWidth" class="form-select form-select-sm w-auto">
+                            <option value="3">Tynd</option>
+                            <option value="6" selected>Normal</option>
+                            <option value="12">Tyk</option>
+                        </select>
+                    </div>
+
                     <div class="vr"></div>
                     <label>Zoom</label>
-                    <input id="zoom" type="range" min="0.25" max="1.4" step="0.05" value="0.6" class="form-range" style="width:120px" />
+                    <input id="zoom" type="range" min="0.2" max="1.6" step="0.05" value="0.6" class="form-range" style="width:110px" />
                     <div class="vr"></div>
                     <label>Lærred (cm)</label>
-                    <input id="canvasW" type="number" class="form-control form-control-sm" style="width:80px" min="200" max="6000" />
+                    <input id="canvasW" type="number" class="form-control form-control-sm" style="width:76px" min="200" max="6000" />
                     <span class="text-muted">×</span>
-                    <input id="canvasH" type="number" class="form-control form-control-sm" style="width:80px" min="200" max="6000" />
+                    <input id="canvasH" type="number" class="form-control form-control-sm" style="width:76px" min="200" max="6000" />
                 </div>
 
                 <div id="floorScroll" class="floor-scroll">
-                    <div id="floor" class="floor"></div>
+                    <div id="floor" class="floor">
+                        <svg id="floorShapes" class="floor-shapes" xmlns="http://www.w3.org/2000/svg"></svg>
+                    </div>
                 </div>
-                <p class="form-text mt-2 mb-0">
-                    Træk for at flytte · klik for at redigere · faste typer har rigtig størrelse (kan roteres).
+                <p class="form-text mt-2 mb-0" id="toolHint">
+                    Træk for at flytte · klik for at redigere · <kbd>Delete</kbd> sletter · <kbd>Ctrl</kbd>+scroll zoomer.
                 </p>
             </div>
         </div>
@@ -116,6 +152,34 @@
                 </div>
             </div>
         </div>
+        <div class="card" id="shapeInspector" hidden>
+            <div class="card-body">
+                <h2 class="section-title">Tegning</h2>
+                <div class="stack">
+                    <div>
+                        <label class="form-label">Farve</label>
+                        <span class="swatches" id="shapeColors">
+                            @foreach (var c in Rema.App.Pages.FloorPlan.EditModel.ShapePalette)
+                            {
+                                <button type="button" class="swatch" data-color="@c" style="--sw:@c"></button>
+                            }
+                        </span>
+                    </div>
+                    <div>
+                        <label class="form-label">Tykkelse</label>
+                        <select id="shapeWidth" class="form-select form-select-sm">
+                            <option value="3">Tynd</option>
+                            <option value="6">Normal</option>
+                            <option value="12">Tyk</option>
+                        </select>
+                    </div>
+                    <button id="btnDeleteShape" class="btn btn-outline-danger btn-sm w-100">
+                        <svg class="icon"><use href="#i-trash" /></svg> Slet tegning
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <p id="inspectorHint" class="text-muted small px-1">Vælg en placering for at redigere den.</p>
     </div>
 </div>

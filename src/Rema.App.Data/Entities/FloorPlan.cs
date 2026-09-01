@@ -35,6 +35,12 @@ public class FloorPlan : ITenantEntity
     [MaxLength(2000)]
     public string? PrintNotes { get; set; }
 
+    /// <summary>
+    /// Frihånds-streger, linjer og firkanter (fx butikkens vægge) som JSON-array.
+    /// Hver form: { id, kind: "pen"|"line"|"rect", color, width, points: [[x,y],…] }.
+    /// </summary>
+    public string? ShapesJson { get; set; }
+
     public DateTimeOffset CreatedUtc { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedUtc { get; set; } = DateTimeOffset.UtcNow;
 

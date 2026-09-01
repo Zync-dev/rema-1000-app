@@ -8,6 +8,22 @@
     var h = Model.Plan.CanvasHeight;
 
     string CellText(FloorBox b, bool second) => (second ? b.OfferB : b.Offer) ?? "";
+
+    string ShapeSvg(FloorShape s)
+    {
+        // s.Color er allerede valideret mod paletten i FloorShapes.Sanitize.
+        var c = s.Color;
+        if (s.Kind == "rect" && s.Points.Count >= 2)
+        {
+            var x = Math.Min(s.Points[0][0], s.Points[1][0]);
+            var y = Math.Min(s.Points[0][1], s.Points[1][1]);
+            var rw = Math.Abs(s.Points[1][0] - s.Points[0][0]);
+            var rh = Math.Abs(s.Points[1][1] - s.Points[0][1]);
+            return $"<rect x=\"{x:0.#}\" y=\"{y:0.#}\" width=\"{rw:0.#}\" height=\"{rh:0.#}\" fill=\"none\" stroke=\"{c}\" stroke-width=\"{s.Width}\" />";
+        }
+        var pts = string.Join(" ", s.Points.Select(p => $"{p[0]:0.#},{p[1]:0.#}"));
+        return $"<polyline points=\"{pts}\" fill=\"none\" stroke=\"{c}\" stroke-width=\"{s.Width}\" stroke-linecap=\"round\" stroke-linejoin=\"round\" />";
+    }
 }
 <!DOCTYPE html>
 <html lang="da">
@@ -59,17 +75,26 @@
             background: #fff;
         }
         .plan-area { border: 1.5px solid #333; }
+        .plan-shapes { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
         .pbox {
-            position: absolute; border: 1.5px solid #444; border-radius: 5px;
+            position: absolute; border: 1.5px solid #333; border-radius: 4px;
             overflow: hidden; background: #fff;
+            display: flex; flex-direction: column;
         }
         .pbox.hl { background: #fff6e0; border-color: #e2231a; }
-        .pbox .tag { position: absolute; top: 2px; left: 2px; background: #0a4d9c; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 4px; border-radius: 4px; }
+        .pbox .tag {
+            flex: none; background: #0a4d9c; color: #fff;
+            font-size: 11px; font-weight: 800; line-height: 1.4; padding: 0 6px; letter-spacing: .02em;
+        }
         .pbox.hl .tag { background: #e2231a; }
-        .pcells { display: flex; width: 100%; height: 100%; }
+        .pcells { flex: 1 1 auto; display: flex; min-height: 0; }
         .pcells.tb { flex-direction: column; }
-        .pcell { flex: 1; min-width: 0; padding: 15px 5px 4px; font-size: 10px; line-height: 1.2; overflow: hidden; }
-        .pcells.lr .pcell + .pcell { border-left: 1.5px dashed #0a4d9c; padding-top: 4px; }
+        .pcell {
+            flex: 1; min-width: 0; min-height: 0; padding: 3px 6px; overflow: hidden;
+            font-size: 13px; font-weight: 600; line-height: 1.25;
+            display: flex; align-items: center; word-break: break-word;
+        }
+        .pcells.lr .pcell + .pcell { border-left: 1.5px dashed #0a4d9c; }
         .pcells.tb .pcell + .pcell { border-top: 1.5px dashed #0a4d9c; }
 
         .sheet__notes {
@@ -121,6 +146,15 @@
 
         <div class="plan-area">
             <div class="plan" id="plan">
+                @if (Model.Shapes.Count > 0)
+                {
+                    <svg class="plan-shapes" viewBox="0 0 @w @h" xmlns="http://www.w3.org/2000/svg">
+                        @foreach (var s in Model.Shapes)
+                        {
+                            @Html.Raw(ShapeSvg(s))
+                        }
+                    </svg>
+                }
                 @foreach (var b in Model.Boxes)
                 {
                     var splitCls = b.Split == SplitMode.LeftRight ? "lr" : b.Split == SplitMode.TopBottom ? "tb" : "";
@@ -178,20 +212,45 @@
             var plan = document.getElementById("plan");
 
             function contentBox() {
-                var els = plan.querySelectorAll(".pbox");
-                if (!els.length) return { x: 0, y: 0, w: PLAN_W, h: PLAN_H };
-                var x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
-                els.forEach(function (el) {
+                var x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity, any = false;
+                plan.querySelectorAll(".pbox").forEach(function (el) {
                     var x = parseFloat(el.style.left) || 0, y = parseFloat(el.style.top) || 0;
                     var w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
                     x1 = Math.min(x1, x); y1 = Math.min(y1, y);
                     x2 = Math.max(x2, x + w); y2 = Math.max(y2, y + h);
+                    any = true;
                 });
-                var padX = Math.max(30, (x2 - x1) * 0.06);
-                var padY = Math.max(30, (y2 - y1) * 0.06);
+                var svg = plan.querySelector(".plan-shapes");
+                if (svg) {
+                    try {
+                        var bb = svg.getBBox();
+                        if (bb.width || bb.height) {
+                            x1 = Math.min(x1, bb.x); y1 = Math.min(y1, bb.y);
+                            x2 = Math.max(x2, bb.x + bb.width); y2 = Math.max(y2, bb.y + bb.height);
+                            any = true;
+                        }
+                    } catch (e) { /* ingen former */ }
+                }
+                if (!any) return { x: 0, y: 0, w: PLAN_W, h: PLAN_H };
+                var padX = Math.max(25, (x2 - x1) * 0.05);
+                var padY = Math.max(25, (y2 - y1) * 0.05);
                 x1 = Math.max(0, x1 - padX); y1 = Math.max(0, y1 - padY);
                 x2 = Math.min(PLAN_W, x2 + padX); y2 = Math.min(PLAN_H, y2 + padY);
-                return { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+                return { x: x1, y: y1, w: Math.max(1, x2 - x1), h: Math.max(1, y2 - y1) };
+            }
+
+            // Skru ned for celle-teksten hvis den ikke kan være i boksen.
+            function fitText() {
+                plan.querySelectorAll(".pcell").forEach(function (cell) {
+                    var fs = 13;
+                    cell.style.fontSize = fs + "px";
+                    var guard = 0;
+                    while (fs > 7 && guard++ < 20 &&
+                           (cell.scrollHeight > cell.clientHeight + 1 || cell.scrollWidth > cell.clientWidth + 1)) {
+                        fs -= 0.5;
+                        cell.style.fontSize = fs + "px";
+                    }
+                });
             }
 
             function fit() {
@@ -212,13 +271,15 @@
                 plan.style.setProperty("--ty", ty.toFixed(1) + "px");
             }
 
-            fit();
-            window.addEventListener("load", fit);
-            setTimeout(fit, 250);                              // efter fonts
-            window.addEventListener("resize", fit);
-            window.addEventListener("beforeprint", fit);
+            function refresh() { fit(); fitText(); }
+
+            refresh();
+            window.addEventListener("load", refresh);
+            setTimeout(refresh, 250);                          // efter fonts
+            window.addEventListener("resize", refresh);
+            window.addEventListener("beforeprint", refresh);
             if (window.matchMedia) {
-                try { window.matchMedia("print").addEventListener("change", fit); } catch (e) { /* Safari */ }
+                try { window.matchMedia("print").addEventListener("change", refresh); } catch (e) { /* Safari */ }
             }
         })();
     </script>

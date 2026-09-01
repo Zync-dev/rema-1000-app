@@ -76,6 +76,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvide
         builder.Entity<FloorPlan>(e =>
         {
             e.Property(p => p.Name).IsRequired();
+            e.Property(p => p.ShapesJson).HasColumnType("text");
             e.HasIndex(p => new { p.StoreId, p.Name });
             e.HasMany(p => p.Boxes)
                 .WithOne(b => b.FloorPlan!)

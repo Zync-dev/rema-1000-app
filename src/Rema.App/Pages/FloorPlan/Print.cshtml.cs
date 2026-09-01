@@ -10,6 +10,7 @@ public class PrintModel(AppDbContext db) : PageModel
 {
     public Data.Entities.FloorPlan Plan { get; private set; } = null!;
     public IReadOnlyList<FloorBox> Boxes { get; private set; } = [];
+    public IReadOnlyList<FloorShape> Shapes { get; private set; } = [];
 
     public string Headline => string.IsNullOrWhiteSpace(Plan.PrintHeadline) ? Plan.Name : Plan.PrintHeadline!.Trim();
 
@@ -20,6 +21,7 @@ public class PrintModel(AppDbContext db) : PageModel
 
         Plan = plan;
         Boxes = plan.Boxes.OrderBy(b => b.Label, StringComparer.OrdinalIgnoreCase).ToList();
+        Shapes = FloorShapes.Parse(plan.ShapesJson);
         return Page();
     }
 

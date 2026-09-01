@@ -162,6 +162,39 @@ public class FloorPlanTests
     }
 
     [Fact]
+    public async Task Save_stores_and_sanitizes_shapes()
+    {
+        var store = Guid.NewGuid();
+        var dbName = nameof(Save_stores_and_sanitizes_shapes);
+        var planId = await SeedPlanAsync(store, dbName);
+
+        await using (var db = Ctx(store, dbName))
+        {
+            await new EditModel(db).OnPostSaveAsync(planId, new EditModel.PlanDto
+            {
+                CanvasWidth = 1400, CanvasHeight = 900,
+                Shapes =
+                [
+                    new() { Kind = "rect", Color = "#0a4d9c", Width = 8, Points = [[10, 10], [400, 300]] },
+                    new() { Kind = "pen", Color = "#badcol", Width = 999, Points = [[0, 0], [50, 20], [80, 90]] },
+                    new() { Kind = "line", Points = [[5, 5]] },               // for få punkter -> kasseret
+                ],
+            });
+        }
+
+        await using (var db = Ctx(store, dbName))
+        {
+            var plan = await db.FloorPlans.FirstAsync(p => p.Id == planId);
+            var shapes = FloorShapes.Parse(plan.ShapesJson);
+            Assert.Equal(2, shapes.Count);
+            Assert.Equal("rect", shapes[0].Kind);
+            Assert.Equal("#0a4d9c", shapes[0].Color);
+            Assert.Equal(FloorShapes.DefaultColor, shapes[1].Color);          // ugyldig farve -> standard
+            Assert.Equal(60, shapes[1].Width);                                // klampet
+        }
+    }
+
+    [Fact]
     public async Task Save_rejects_plan_from_another_store()
     {
         var storeA = Guid.NewGuid();

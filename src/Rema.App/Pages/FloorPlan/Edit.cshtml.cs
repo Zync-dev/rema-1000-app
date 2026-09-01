@@ -30,6 +30,8 @@ public class EditModel(AppDbContext db) : PageModel
     public static readonly IReadOnlyList<(string Value, string Label)> SplitOptions =
         Enum.GetValues<SplitMode>().Select(s => (s.ToString(), Display(s))).ToList();
 
+    public static readonly IReadOnlyList<string> ShapePalette = FloorShapes.Palette;
+
     public async Task<IActionResult> OnGetAsync(Guid id)
     {
         var plan = await LoadAsync(id);
@@ -98,6 +100,8 @@ public class EditModel(AppDbContext db) : PageModel
             }
         }
 
+        plan.ShapesJson = FloorShapes.Serialize(FloorShapes.Sanitize(dto.Shapes));
+
         await db.SaveChangesAsync();
         return new JsonResult(new { ok = true, savedUtc = plan.UpdatedUtc });
     }
@@ -140,6 +144,7 @@ public class EditModel(AppDbContext db) : PageModel
                 X = b.X, Y = b.Y, Width = b.Width, Height = b.Height,
             })
             .ToList(),
+        Shapes = FloorShapes.Parse(p.ShapesJson),
     };
 
     private static string? Trim(string? s, int max)
@@ -169,6 +174,7 @@ public class EditModel(AppDbContext db) : PageModel
         public int CanvasWidth { get; set; } = 1400;
         public int CanvasHeight { get; set; } = 900;
         public List<BoxDto> Boxes { get; set; } = [];
+        public List<FloorShape> Shapes { get; set; } = [];
     }
 
     public class BoxDto
