@@ -9,7 +9,7 @@ public sealed class LogEmailSender(ILogger<LogEmailSender> logger) : IEmailSende
     public Task<bool> SendAsync(EmailMessage message, CancellationToken ct = default)
     {
         logger.LogWarning(
-            "MAIL IKKE SENDT (ingen SMTP opsat). Til: {To} · Emne: {Subject}\n{Body}",
+            "MAIL IKKE SENDT (Email__ApiKey/Email__FromEmail mangler). Til: {To} · Emne: {Subject}\n{Body}",
             message.ToEmail, message.Subject, message.BodyText);
         return Task.FromResult(true);
     }

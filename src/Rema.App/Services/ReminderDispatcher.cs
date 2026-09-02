@@ -102,6 +102,7 @@ public sealed class ReminderDispatcher(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        logger.LogInformation("Påmindelses-dispatcher startet – tjekker hvert {Seconds}. sekund.", Interval.TotalSeconds);
         try { await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken); }
         catch (OperationCanceledException) { return; }
 

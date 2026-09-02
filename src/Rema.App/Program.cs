@@ -47,6 +47,12 @@ builder.Services.Configure<Rema.App.Services.Email.EmailOptions>(
 var emailOptions = builder.Configuration
     .GetSection(Rema.App.Services.Email.EmailOptions.Section)
     .Get<Rema.App.Services.Email.EmailOptions>() ?? new();
+// Halv opsætning er (næsten altid) en fejl – sig det højt i stedet for tavst at logge kun.
+if (!emailOptions.IsConfigured
+    && (!string.IsNullOrWhiteSpace(emailOptions.ApiKey) || !string.IsNullOrWhiteSpace(emailOptions.FromEmail)))
+    throw new InvalidOperationException(
+        "Email er kun halvt opsat. Sæt BÅDE Email__ApiKey (re_…) OG Email__FromEmail "
+        + "(en afsenderadresse på et domæne du har verificeret i Resend).");
 if (emailOptions.IsConfigured)
     builder.Services.AddHttpClient<Rema.App.Services.Email.IEmailSender, Rema.App.Services.Email.ResendEmailSender>(c =>
     {
@@ -143,10 +149,18 @@ if (dpKeyB64 is null && !app.Environment.IsDevelopment())
         "DATAPROTECTION_KEY er ikke sat. Data Protection-nøgleringen (auth-cookies + gemte "
         + "Gemini API-nøgler) gemmes UKRYPTERET i databasen. Sæt en base64-nøgle: openssl rand -base64 32");
 
-if (!emailOptions.IsConfigured && !app.Environment.IsDevelopment())
+if (emailOptions.IsConfigured)
+    app.Logger.LogInformation(
+        "Email: Resend er aktiv. Afsender: {From}. Nøgle slutter på …{KeyTail}.",
+        emailOptions.FromEmail,
+        emailOptions.ApiKey!.Length >= 4 ? emailOptions.ApiKey[^4..] : "????");
+else
     app.Logger.LogWarning(
-        "Email er ikke opsat (Email__ApiKey / Email__FromEmail). Påmindelser bliver IKKE sendt – "
-        + "de logges kun. Opret en gratis Resend-konto og sæt nøglen + en verificeret afsender.");
+        "Email er IKKE opsat – påmindelser logges kun, ikke sendt. Mangler: {Missing}. "
+        + "Sæt miljøvariablerne Email__ApiKey (re_…) og Email__FromEmail (verificeret Resend-afsender).",
+        string.IsNullOrWhiteSpace(emailOptions.ApiKey)
+            ? (string.IsNullOrWhiteSpace(emailOptions.FromEmail) ? "både ApiKey og FromEmail" : "ApiKey")
+            : "FromEmail");
 
 app.UseForwardedHeaders();
 
