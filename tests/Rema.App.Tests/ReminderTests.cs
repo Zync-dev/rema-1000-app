@@ -35,13 +35,40 @@ public class ReminderTests
     public void Mail_has_danish_time_and_short_subject()
     {
         var r = DueReminder(Guid.NewGuid());
-        var msg = ReminderMail.Build(r, "karen@butik.dk", "Karen");
+        var msg = ReminderMail.Build(r, "karen@butik.dk", "Karen Nielsen");
 
         Assert.StartsWith("Påmindelse:", msg.Subject);
         Assert.Contains("rundstykker", msg.Subject);
         // 06:00 UTC den 7. sep = sommertid i DK → 08:00 lokalt
         Assert.Contains("kl. 08:00", msg.BodyText);
         Assert.Contains("mandag", msg.BodyText);
+        Assert.Contains("Hej Karen,", msg.BodyText); // kun fornavn
+    }
+
+    [Fact]
+    public void Html_is_a_full_branded_document_with_encoded_body()
+    {
+        var r = DueReminder(Guid.NewGuid());
+        r.Text = "Ring til <chefen> & sig god weekend";
+        var html = ReminderMail.Build(r, "karen@butik.dk", "Karen Nielsen").BodyHtml!;
+
+        Assert.StartsWith("<!DOCTYPE html>", html);
+        Assert.Contains("REMA", html);
+        Assert.Contains("kl. 08:00", html);
+        Assert.Contains("Hej Karen,", html);
+        // brugerteksten skal være HTML-escaped, ikke rå
+        Assert.Contains("Ring til &lt;chefen&gt; &amp; sig god weekend", html);
+        Assert.DoesNotContain("<chefen>", html);
+    }
+
+    [Fact]
+    public void Html_without_a_name_has_no_greeting()
+    {
+        var r = DueReminder(Guid.NewGuid());
+        r.RecipientName = null;
+        var msg = ReminderMail.Build(r, "x@y.dk", null);
+        Assert.DoesNotContain("Hej ", msg.BodyHtml!);
+        Assert.DoesNotContain("Hej ", msg.BodyText);
     }
 
     [Fact]

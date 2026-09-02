@@ -132,19 +132,77 @@ public static class ReminderMail
         var whenLocal = TimeZoneInfo.ConvertTime(r.DueAtUtc, DanishTime.Zone);
         var when = DateOnly.FromDateTime(whenLocal.Date).ToWeekdayDate();
         var time = whenLocal.ToString("HH:mm");
+        var firstName = FirstName(toName);
 
         var subject = "Påmindelse: " + Shorten(r.Text, 60);
+
         var text =
+            "PÅMINDELSE\n\n" +
+            (firstName is null ? "" : $"Hej {firstName},\n\n") +
             $"{r.Text}\n\n" +
-            $"Tidspunkt: {when} kl. {time}\n\n" +
-            "— sendt automatisk fra Rema Butiksværktøjer";
+            $"Hvornår:  {when} kl. {time}\n\n" +
+            "—\nSendt automatisk fra Rema Butiksværktøjer";
 
-        var html =
-            $"<p style=\"font-size:16px\"><strong>{System.Net.WebUtility.HtmlEncode(r.Text)}</strong></p>" +
-            $"<p style=\"color:#555\">Tidspunkt: {when} kl. {time}</p>" +
-            "<p style=\"color:#999;font-size:12px\">Sendt automatisk fra Rema Butiksværktøjer.</p>";
+        return new EmailMessage(toEmail, toName, subject, text, BuildHtml(r.Text, when, time, firstName));
+    }
 
-        return new EmailMessage(toEmail, toName, subject, text, html);
+    private static string BuildHtml(string bodyRaw, string when, string time, string? firstName)
+    {
+        var body = System.Net.WebUtility.HtmlEncode(bodyRaw);
+        var preheader = System.Net.WebUtility.HtmlEncode(Shorten(bodyRaw, 100));
+        var greeting = firstName is null
+            ? ""
+            : $"""<p style="margin:0 0 16px;font-size:15px;color:#1e2430;">Hej {System.Net.WebUtility.HtmlEncode(firstName)},</p>""";
+
+        const string font = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+
+        return $$"""
+        <!DOCTYPE html>
+        <html lang="da">
+        <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta name="color-scheme" content="light only">
+        <title>Påmindelse</title>
+        </head>
+        <body style="margin:0;padding:0;background:#eceae3;-webkit-text-size-adjust:100%;">
+        <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">{{preheader}}</div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eceae3;">
+        <tr><td align="center" style="padding:28px 12px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #e2ddce;border-radius:16px;overflow:hidden;">
+        <tr><td style="background:#0a4d9c;padding:20px 32px;">
+        <span style="font-family:{{font}};font-size:19px;font-weight:800;letter-spacing:.5px;color:#ffffff;">REMA&nbsp;1000</span>
+        <span style="font-family:{{font}};font-size:13px;font-weight:600;color:#a9c8ea;padding-left:9px;">Butiksværktøjer</span>
+        </td></tr>
+        <tr><td style="padding:32px 32px 28px;font-family:{{font}};">
+        <p style="margin:0 0 18px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#e2231a;">Påmindelse</p>
+        {{greeting}}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-left:4px solid #0a4d9c;background:#f6f5f0;border-radius:0 10px 10px 0;">
+        <tr><td style="padding:20px 22px;">
+        <p style="margin:0;font-size:20px;line-height:1.45;font-weight:700;color:#16213a;">{{body}}</p>
+        <p style="margin:16px 0 0;font-size:15px;color:#44506a;"><strong style="color:#16213a;">{{when}}</strong> &nbsp;kl. {{time}}</p>
+        </td></tr>
+        </table>
+        <p style="margin:24px 0 0;font-size:13px;line-height:1.6;color:#8b93a0;">Du får denne mail, så det ikke bliver glemt.</p>
+        </td></tr>
+        <tr><td style="padding:18px 32px;border-top:1px solid #eceae3;font-family:{{font}};">
+        <p style="margin:0;font-size:12px;color:#9aa2ad;">Sendt automatisk fra Rema&nbsp;Butiksværktøjer.</p>
+        </td></tr>
+        </table>
+        </td></tr>
+        </table>
+        </body>
+        </html>
+        """;
+    }
+
+    /// <summary>Kun fornavnet – "Karen Nielsen" → "Karen". Tomt/ukendt → null.</summary>
+    private static string? FirstName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return null;
+        var trimmed = name.Trim();
+        var space = trimmed.IndexOf(' ');
+        return space > 0 ? trimmed[..space] : trimmed;
     }
 
     private static string Shorten(string s, int max) =>
