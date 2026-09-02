@@ -904,3 +904,16 @@ kbd {
 .divided > * + * { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
 .muted-link { color: var(--ink-soft); text-decoration: none; font-weight: 550; }
 .muted-link:hover { color: var(--rema-blue); }
+
+/* Menu-links skal se ud som menu-knapper */
+a.appbar__menu-item { text-decoration: none; }
+
+/* Loginoplysninger der vises én gang efter en konto er oprettet */
+.cred-box {
+  display: grid; gap: .5rem;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--r); padding: .8rem 1rem;
+}
+.cred-box > div { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.cred-box span { font-size: .78rem; font-weight: 650; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .04em; }
+.cred-box code { font-size: 1rem; font-weight: 700; color: var(--ink); background: none; padding: 0; user-select: all; }

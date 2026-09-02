@@ -1,0 +1,114 @@
+@page "/medarbejdere/ny"
+@using Rema.App.Services
+@model Rema.App.Pages.Team.NewModel
+@{
+    ViewData["Title"] = "Ny medarbejder";
+}
+
+<header class="page-head">
+    <div>
+        <a class="page-head__back" asp-page="Index"><svg class="icon"><use href="#i-arrow-left" /></svg> Medarbejdere</a>
+        <h1>Ny medarbejder</h1>
+    </div>
+</header>
+
+@if (Model.Created is { } c)
+{
+    <div class="card" style="max-width: 34rem">
+        <div class="card-body stack">
+            <div class="d-flex align-items-center gap-2 text-success">
+                <svg class="icon icon--lg"><use href="#i-check" /></svg>
+                <h2 class="section-title m-0">Kontoen er oprettet</h2>
+            </div>
+            <p class="text-muted m-0">
+                Giv @c.DisplayName disse oplysninger. Adgangskoden vises <strong>kun nu</strong> –
+                medarbejderen bør skifte den under “Min profil” ved første login.
+            </p>
+            <div class="cred-box">
+                <div><span>Login</span><code>@c.Email</code></div>
+                <div><span>Adgangskode</span><code id="pw">@c.Password</code></div>
+            </div>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-copy="@($"{c.Email}\n{c.Password}")">
+                <svg class="icon"><use href="#i-copy" /></svg> Kopiér login
+            </button>
+            <div class="d-flex gap-2 pt-1">
+                <a asp-page="New" class="btn btn-primary">Opret endnu en</a>
+                <a asp-page="Index" class="btn btn-outline-secondary">Til oversigten</a>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card" style="max-width: 34rem">
+        <div class="card-body">
+            <form method="post" class="stack">
+                <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+                <div>
+                    <label asp-for="Input.DisplayName" class="form-label"></label>
+                    <input asp-for="Input.DisplayName" class="form-control" autocomplete="off" placeholder="Karen Nielsen" />
+                    <span asp-validation-for="Input.DisplayName" class="text-danger small"></span>
+                </div>
+                <div>
+                    <label asp-for="Input.Email" class="form-label"></label>
+                    <input asp-for="Input.Email" class="form-control" autocomplete="off" />
+                    <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                </div>
+                <div>
+                    <label asp-for="Input.Phone" class="form-label"></label>
+                    <input asp-for="Input.Phone" class="form-control" autocomplete="off" placeholder="+45 12 34 56 78" />
+                    <span asp-validation-for="Input.Phone" class="text-danger small"></span>
+                    <p class="form-text">Bruges senere til påmindelser. Kan udfyldes nu eller senere.</p>
+                </div>
+                <div>
+                    <label asp-for="Input.Role" class="form-label"></label>
+                    <select asp-for="Input.Role" class="form-select">
+                        @foreach (var r in Model.RoleOptions)
+                        {
+                            <option value="@r">@RoleInfo.Label(r)</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label asp-for="Input.Password" class="form-label"></label>
+                    <div class="input-group">
+                        <input asp-for="Input.Password" class="form-control" id="pwField" autocomplete="off" />
+                        <button type="button" class="btn btn-outline-secondary" id="pwGen">Generér ny</button>
+                    </div>
+                    <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                    <p class="form-text">Vises igen efter oprettelse, så du kan give den videre.</p>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <svg class="icon"><use href="#i-plus" /></svg> Opret konto
+                </button>
+            </form>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            // Klik-til-kopiér
+            document.querySelectorAll("[data-copy]").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    navigator.clipboard.writeText(btn.dataset.copy).then(function () {
+                        var t = btn.textContent; btn.textContent = "Kopieret ✓";
+                        setTimeout(function () { btn.textContent = t; }, 1500);
+                    });
+                });
+            });
+            // Ny tilfældig adgangskode uden at kende serverens algoritme: læsbar 12-tegns.
+            var gen = document.getElementById("pwGen");
+            if (gen) gen.addEventListener("click", function () {
+                var U = "ABCDEFGHJKLMNPQRSTUVWXYZ", L = "abcdefghijkmnpqrstuvwxyz", D = "23456789", A = U + L + D;
+                function pick(s) { return s[Math.floor(Math.random() * s.length)]; }
+                var c = [pick(U), pick(L), pick(D)];
+                for (var i = 3; i < 12; i++) c.push(pick(A));
+                for (var i = c.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var x = c[i]; c[i] = c[j]; c[j] = x; }
+                document.getElementById("pwField").value = c.join("");
+            });
+        })();
+    </script>
+}

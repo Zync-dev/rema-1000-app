@@ -1,0 +1,108 @@
+@page "/medarbejdere/{id:guid}"
+@using Rema.App.Services
+@model Rema.App.Pages.Team.EditModel
+@{
+    ViewData["Title"] = Model.Input.DisplayName;
+}
+
+<header class="page-head">
+    <div>
+        <a class="page-head__back" asp-page="Index"><svg class="icon"><use href="#i-arrow-left" /></svg> Medarbejdere</a>
+        <h1>@Model.Input.DisplayName</h1>
+        <p class="page-head__sub">@Model.Email · @RoleInfo.Label(Model.CurrentRole)@(Model.IsActive ? "" : " · deaktiveret")</p>
+    </div>
+</header>
+
+@if (Model.NewPassword is { } pw)
+{
+    <div class="card mb-3" style="max-width: 40rem">
+        <div class="card-body stack">
+            <h2 class="section-title m-0">Ny adgangskode</h2>
+            <p class="text-muted m-0">Vises kun nu. Giv den til @Model.Input.DisplayName.</p>
+            <div class="cred-box">
+                <div><span>Login</span><code>@Model.Email</code></div>
+                <div><span>Adgangskode</span><code>@pw</code></div>
+            </div>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-copy="@($"{Model.Email}\n{pw}")">
+                <svg class="icon"><use href="#i-copy" /></svg> Kopiér login
+            </button>
+        </div>
+    </div>
+}
+
+<div class="row g-3" style="max-width: 52rem">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="section-title">Oplysninger</h2>
+                <form method="post" class="stack">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+                    <div>
+                        <label asp-for="Input.DisplayName" class="form-label"></label>
+                        <input asp-for="Input.DisplayName" class="form-control" />
+                        <span asp-validation-for="Input.DisplayName" class="text-danger small"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Input.Phone" class="form-label"></label>
+                        <input asp-for="Input.Phone" class="form-control" placeholder="+45 12 34 56 78" />
+                        <span asp-validation-for="Input.Phone" class="text-danger small"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Input.Role" class="form-label"></label>
+                        <select asp-for="Input.Role" class="form-select">
+                            @foreach (var r in Model.RoleOptions)
+                            {
+                                <option value="@r">@RoleInfo.Label(r)</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Input.Role" class="text-danger small"></span>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Gem</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-body stack">
+                <h2 class="section-title">Konto</h2>
+
+                <form method="post" asp-page-handler="ResetPassword"
+                      onsubmit="return confirm('Lav en ny adgangskode? Den nuværende holder op med at virke.');">
+                    <button class="btn btn-outline-secondary btn-sm w-100">
+                        <svg class="icon"><use href="#i-key" /></svg> Nulstil adgangskode
+                    </button>
+                </form>
+
+                @if (Model.IsActive)
+                {
+                    <form method="post" asp-page-handler="Deactivate"
+                          onsubmit="return confirm('Deaktivér kontoen? Personen kan ikke logge ind, men data bevares.');">
+                        <button class="btn btn-outline-danger btn-sm w-100">Deaktivér konto</button>
+                    </form>
+                }
+                else
+                {
+                    <form method="post" asp-page-handler="Reactivate">
+                        <button class="btn btn-outline-primary btn-sm w-100">Aktivér konto igen</button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.querySelectorAll("[data-copy]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                navigator.clipboard.writeText(btn.dataset.copy).then(function () {
+                    var t = btn.textContent; btn.textContent = "Kopieret ✓";
+                    setTimeout(function () { btn.textContent = t; }, 1500);
+                });
+            });
+        });
+    </script>
+}

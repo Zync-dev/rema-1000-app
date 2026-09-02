@@ -1,0 +1,50 @@
+@page "/medarbejdere"
+@using Rema.App.Services
+@model Rema.App.Pages.Team.IndexModel
+@{
+    ViewData["Title"] = "Medarbejdere";
+}
+
+<header class="page-head">
+    <div>
+        <h1>Medarbejdere</h1>
+        <p class="page-head__sub">Opret konti til dine medarbejdere, så de kan krydse opgaver af og modtage påmindelser.</p>
+    </div>
+    <div class="page-head__actions">
+        <a asp-page="New" class="btn btn-primary"><svg class="icon"><use href="#i-plus" /></svg> Ny medarbejder</a>
+    </div>
+</header>
+
+@if (Model.Members.Count == 0)
+{
+    <div class="empty-state">
+        <svg class="icon icon--lg"><use href="#i-users" /></svg>
+        <h2>Ingen medarbejdere endnu</h2>
+        <p>Opret den første konto for at komme i gang.</p>
+    </div>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var m in Model.Members)
+        {
+            <a class="list-group-item data-row d-flex justify-content-between align-items-center gap-3 @(m.IsActive ? "" : "opacity-50")"
+               asp-page="Edit" asp-route-id="@m.Id">
+                <div class="min-w-0">
+                    <span class="data-row__title">@m.DisplayName</span>
+                    <div class="data-row__meta">
+                        @m.Email@(string.IsNullOrEmpty(m.Phone) ? "" : " · " + m.Phone)
+                    </div>
+                </div>
+                <div class="d-flex gap-2 align-items-center flex-shrink-0">
+                    @if (!m.IsActive)
+                    {
+                        <span class="pill">Deaktiveret</span>
+                    }
+                    <span class="pill">@RoleInfo.Label(m.Role)</span>
+                    <svg class="icon text-muted"><use href="#i-arrow-right" /></svg>
+                </div>
+            </a>
+        }
+    </div>
+}

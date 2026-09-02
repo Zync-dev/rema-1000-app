@@ -1,0 +1,53 @@
+@page "/profil"
+@model Rema.App.Pages.Profile.IndexModel
+@{
+    ViewData["Title"] = "Min profil";
+}
+
+<header class="page-head">
+    <div>
+        <h1>Min profil</h1>
+        <p class="page-head__sub">@Model.Email · @Model.RoleLabel</p>
+    </div>
+</header>
+
+<div class="row g-3" style="max-width: 52rem">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="section-title">Oplysninger</h2>
+                <form method="post" class="stack">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+                    <div>
+                        <label asp-for="Input.DisplayName" class="form-label"></label>
+                        <input asp-for="Input.DisplayName" class="form-control" />
+                        <span asp-validation-for="Input.DisplayName" class="text-danger small"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Input.Phone" class="form-label"></label>
+                        <input asp-for="Input.Phone" class="form-control" placeholder="+45 12 34 56 78" />
+                        <span asp-validation-for="Input.Phone" class="text-danger small"></span>
+                        <p class="form-text">Bruges til påmindelser.</p>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Gem</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body stack">
+                <h2 class="section-title">Adgangskode</h2>
+                <p class="text-muted m-0">Skift den adgangskode du logger ind med.</p>
+                <a asp-page="Password" class="btn btn-outline-secondary">
+                    <svg class="icon"><use href="#i-key" /></svg> Skift adgangskode
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

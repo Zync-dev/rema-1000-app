@@ -31,6 +31,15 @@
             <p>Generér opslag i butikkens faste stil – tilbud, konkurrencer, events.</p>
             <span class="tool-tile__go">Åbn <svg class="icon"><use href="#i-arrow-right" /></svg></span>
         </a>
+        @if (User.IsInRole("Koebmand") || User.IsInRole("Souschef"))
+        {
+            <a asp-page="/Team/Index" class="tool-tile">
+                <span class="tool-tile__icon"><svg class="icon icon--lg"><use href="#i-users" /></svg></span>
+                <h2>Medarbejdere</h2>
+                <p>Opret og administrér medarbejdernes konti – navn, rolle og login.</p>
+                <span class="tool-tile__go">Åbn <svg class="icon"><use href="#i-arrow-right" /></svg></span>
+            </a>
+        }
     </div>
 }
 else

@@ -4,6 +4,7 @@
     var currentPage = (ViewContext.RouteData.Values["page"] as string) ?? "";
     string NavActive(string prefix) =>
         currentPage.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+    var isLeder = User.IsInRole("Koebmand") || User.IsInRole("Souschef");
 }
 <!DOCTYPE html>
 <html lang="da">
@@ -53,6 +54,12 @@
                     <a class="appbar__link @NavActive("/FacebookPost")" asp-page="/FacebookPost/Index">
                         <svg class="icon"><use href="#i-megaphone" /></svg><span>Facebook-opslag</span>
                     </a>
+                    @if (isLeder)
+                    {
+                        <a class="appbar__link @NavActive("/Team")" asp-page="/Team/Index">
+                            <svg class="icon"><use href="#i-users" /></svg><span>Medarbejdere</span>
+                        </a>
+                    }
 
                     <div class="appbar__user" data-menu>
                         <button class="appbar__userbtn" type="button" data-menu-btn aria-expanded="false" aria-haspopup="true">
@@ -68,6 +75,9 @@
                                     <span>@displayName</span>
                                 }
                             </div>
+                            <a class="appbar__menu-item" asp-page="/Profile/Index">
+                                <svg class="icon"><use href="#i-user" /></svg><span>Min profil</span>
+                            </a>
                             <form asp-page="/Account/Logout" method="post">
                                 <button type="submit" class="appbar__menu-item">
                                     <svg class="icon"><use href="#i-logout" /></svg><span>Log ud</span>

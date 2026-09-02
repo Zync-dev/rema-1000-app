@@ -8,7 +8,9 @@ using Rema.App.Data.Entities;
 namespace Rema.App.Pages.Account;
 
 [AllowAnonymous]
-public class LoginModel(SignInManager<ApplicationUser> signInManager) : PageModel
+public class LoginModel(
+    SignInManager<ApplicationUser> signInManager,
+    UserManager<ApplicationUser> userManager) : PageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();
@@ -45,7 +47,11 @@ public class LoginModel(SignInManager<ApplicationUser> signInManager) : PageMode
 
         if (result.IsLockedOut)
         {
-            ModelState.AddModelError(string.Empty, "Kontoen er midlertidigt låst efter for mange forsøg. Prøv igen om lidt.");
+            // Deaktiverede konti låses permanent – skeln dem fra en midlertidig spærring.
+            var user = await userManager.FindByEmailAsync(Input.Email);
+            ModelState.AddModelError(string.Empty, user is { IsActive: false }
+                ? "Din konto er deaktiveret. Kontakt din købmand."
+                : "Kontoen er midlertidigt låst efter for mange forsøg. Prøv igen om lidt.");
             return Page();
         }
 
