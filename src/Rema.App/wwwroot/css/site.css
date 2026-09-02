@@ -738,15 +738,41 @@ textarea.form-control { line-height: 1.55; }
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: .5rem;
-  padding: .75rem;
+  gap: .4rem;
+  padding: .55rem .6rem;
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--r);
   margin-bottom: .75rem;
 }
-.editor-toolbar .vr { background: var(--border-strong); opacity: 1; }
+.editor-toolbar .vr { background: var(--border-strong); opacity: 1; margin: 0 .1rem; }
 .editor-toolbar label { font-size: .78rem; font-weight: 600; color: var(--ink-faint); margin: 0; }
+.editor-toolbar .form-select-sm { padding-right: 1.6rem; }
+
+/* Lille popover (fx lærred-størrelse) */
+.popwrap { position: relative; }
+.pop {
+  position: absolute;
+  top: calc(100% + .4rem);
+  left: 0;
+  z-index: 20;
+  min-width: 210px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-lg);
+  padding: .8rem;
+}
+
+/* Snap-hjælpelinjer i editoren */
+.snap-guide {
+  position: absolute;
+  background: var(--rema-red);
+  z-index: 6;
+  pointer-events: none;
+}
+.snap-guide.v { width: 1px; top: 0; bottom: 0; }
+.snap-guide.h { height: 1px; left: 0; right: 0; }
 
 .floor-scroll {
   overflow: auto;

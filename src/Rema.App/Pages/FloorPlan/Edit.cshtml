@@ -70,13 +70,28 @@
                     </div>
 
                     <div class="vr"></div>
-                    <label>Zoom</label>
-                    <input id="zoom" type="range" min="0.2" max="1.6" step="0.05" value="0.6" class="form-range" style="width:110px" />
-                    <div class="vr"></div>
-                    <label>Lærred (cm)</label>
-                    <input id="canvasW" type="number" class="form-control form-control-sm" style="width:76px" min="200" max="6000" />
-                    <span class="text-muted">×</span>
-                    <input id="canvasH" type="number" class="form-control form-control-sm" style="width:76px" min="200" max="6000" />
+
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Zoom">
+                        <button type="button" id="zoomOut" class="btn btn-outline-secondary" title="Zoom ud (Ctrl+scroll)">−</button>
+                        <button type="button" id="zoomReset" class="btn btn-outline-secondary" style="min-width:52px" title="Nulstil zoom">60%</button>
+                        <button type="button" id="zoomIn" class="btn btn-outline-secondary" title="Zoom ind (Ctrl+scroll)">+</button>
+                    </div>
+                    <input id="zoom" type="hidden" value="0.6" />
+
+                    <div class="popwrap">
+                        <button type="button" id="canvasBtn" class="btn btn-sm btn-outline-secondary">
+                            <svg class="icon"><use href="#i-frame" /></svg> <span id="canvasLabel">14 × 9 m</span>
+                        </button>
+                        <div id="canvasPop" class="pop" hidden>
+                            <label class="form-label">Lærred (meter)</label>
+                            <div class="d-flex align-items-center gap-1">
+                                <input id="canvasW" type="number" class="form-control form-control-sm" style="width:70px" min="2" max="60" step="0.5" />
+                                <span class="text-muted">×</span>
+                                <input id="canvasH" type="number" class="form-control form-control-sm" style="width:70px" min="2" max="60" step="0.5" />
+                            </div>
+                            <p class="form-text mt-1 mb-0">Ca. størrelsen på gulvarealet.</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="floorScroll" class="floor-scroll">

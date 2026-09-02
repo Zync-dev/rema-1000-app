@@ -61,10 +61,11 @@
         .sheet__head h1 { font-size: 20px; margin: 0; color: #16213a; }
         .sheet__head .meta { font-size: 12px; color: #6b7280; }
 
-        /* Fast rektangel til tegningen – hverken flex eller indhold styrer højden. */
+        /* Fast rektangel til tegningen – hverken flex eller indhold styrer højden.
+           Tegningen fylder venstre side, varelisten står til højre. */
         .plan-area {
-            position: absolute; left: 8mm; right: 8mm; top: 21mm; bottom: 30mm;
-            overflow: hidden;
+            position: absolute; left: 8mm; width: 176mm; top: 21mm; bottom: 30mm;
+            overflow: hidden; border: 1.5px solid #333;
         }
         .sheet.no-notes .plan-area { bottom: 8mm; }
         .plan {
@@ -74,28 +75,43 @@
             transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(var(--s, 0.4));
             background: #fff;
         }
-        .plan-area { border: 1.5px solid #333; }
         .plan-shapes { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
         .pbox {
             position: absolute; border: 1.5px solid #333; border-radius: 4px;
             overflow: hidden; background: #fff;
-            display: flex; flex-direction: column;
+            display: flex; align-items: center; justify-content: center;
         }
         .pbox.hl { background: #fff6e0; border-color: #e2231a; }
-        .pbox .tag {
-            flex: none; background: #0a4d9c; color: #fff;
-            font-size: 11px; font-weight: 800; line-height: 1.4; padding: 0 6px; letter-spacing: .02em;
+        .pnum { font-weight: 800; color: #16213a; line-height: 1; }
+        .pbox.hl .pnum { color: #b81b13; }
+        .pbox.lr::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 2px dashed #0a4d9c; }
+        .pbox.tb::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 2px dashed #0a4d9c; }
+
+        /* Læsbar vareliste ved siden af tegningen. */
+        .legend {
+            position: absolute; right: 8mm; width: 81mm; top: 21mm; bottom: 30mm;
+            overflow: hidden;
         }
-        .pbox.hl .tag { background: #e2231a; }
-        .pcells { flex: 1 1 auto; display: flex; min-height: 0; }
-        .pcells.tb { flex-direction: column; }
-        .pcell {
-            flex: 1; min-width: 0; min-height: 0; padding: 3px 6px; overflow: hidden;
-            font-size: 13px; font-weight: 600; line-height: 1.25;
-            display: flex; align-items: center; word-break: break-word;
+        .sheet.no-notes .legend { bottom: 8mm; }
+        .legend h2 {
+            font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
+            color: #6b7280; margin: 0 0 6px; font-weight: 700;
         }
-        .pcells.lr .pcell + .pcell { border-left: 1.5px dashed #0a4d9c; }
-        .pcells.tb .pcell + .pcell { border-top: 1.5px dashed #0a4d9c; }
+        .legend ol { list-style: none; margin: 0; padding: 0; }
+        .legend li {
+            display: flex; gap: 8px; align-items: baseline;
+            padding: 4px 0; border-bottom: 1px solid #ececec;
+        }
+        .legend .lg-num {
+            flex: none; min-width: 22px; height: 22px; padding: 0 4px;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: #0a4d9c; color: #fff; border-radius: 5px;
+            font-size: 12px; font-weight: 800;
+        }
+        .legend li.hl .lg-num { background: #e2231a; }
+        .legend .lg-txt { font-size: 13px; line-height: 1.3; color: #1e2430; }
+        .legend .lg-txt .sub { color: #6b7280; font-weight: 600; }
+        .legend .lg-txt .empty { color: #9aa2ad; font-style: italic; }
 
         .sheet__notes {
             position: absolute; left: 8mm; right: 8mm; bottom: 6mm; height: 22mm;
@@ -158,19 +174,42 @@
                 @foreach (var b in Model.Boxes)
                 {
                     var splitCls = b.Split == SplitMode.LeftRight ? "lr" : b.Split == SplitMode.TopBottom ? "tb" : "";
-                    <div class="pbox @(b.Highlight ? "hl" : "")"
+                    <div class="pbox @splitCls @(b.Highlight ? "hl" : "")"
                          style="left:@(b.X)px;top:@(b.Y)px;width:@(b.Width)px;height:@(b.Height)px">
-                        <span class="tag">@b.Label</span>
-                        <div class="pcells @splitCls">
-                            <div class="pcell">@CellText(b, false)</div>
-                            @if (b.Split != SplitMode.None)
-                            {
-                                <div class="pcell">@CellText(b, true)</div>
-                            }
-                        </div>
+                        <span class="pnum">@b.Label</span>
                     </div>
                 }
             </div>
+        </div>
+
+        <div class="legend">
+            <h2>Ugens varer</h2>
+            <ol id="legendList">
+                @foreach (var b in Model.Boxes)
+                {
+                    <li class="@(b.Highlight ? "hl" : "")">
+                        <span class="lg-num">@b.Label</span>
+                        <span class="lg-txt">
+                            @if (b.Split == SplitMode.None)
+                            {
+                                var t = CellText(b, false);
+                                if (string.IsNullOrWhiteSpace(t)) { <span class="empty">(ingen vare)</span> }
+                                else { @t }
+                            }
+                            else
+                            {
+                                var ta = CellText(b, false);
+                                var tb = CellText(b, true);
+                                <span class="sub">@Rema.App.Pages.FloorPlan.PrintModel.SplitLabelA(b.Split):</span>
+                                @(string.IsNullOrWhiteSpace(ta) ? "–" : ta)
+                                <br />
+                                <span class="sub">@Rema.App.Pages.FloorPlan.PrintModel.SplitLabelB(b.Split):</span>
+                                @(string.IsNullOrWhiteSpace(tb) ? "–" : tb)
+                            }
+                        </span>
+                    </li>
+                }
+            </ol>
         </div>
 
         <div class="sheet__notes">@Model.Plan.PrintNotes</div>
@@ -206,7 +245,7 @@
 
     <script>
         // Zoom ind på de faktiske placeringer, så tegningen ALTID fylder ét ark –
-        // uanset hvor stort lærredet er sat til.
+        // uanset hvor stort lærredet er sat til. Teksten står i varelisten ved siden af.
         (function () {
             var PLAN_W = @w, PLAN_H = @h;
             var plan = document.getElementById("plan");
@@ -239,18 +278,32 @@
                 return { x: x1, y: y1, w: Math.max(1, x2 - x1), h: Math.max(1, y2 - y1) };
             }
 
-            // Skru ned for celle-teksten hvis den ikke kan være i boksen.
-            function fitText() {
-                plan.querySelectorAll(".pcell").forEach(function (cell) {
-                    var fs = 13;
-                    cell.style.fontSize = fs + "px";
-                    var guard = 0;
-                    while (fs > 7 && guard++ < 20 &&
-                           (cell.scrollHeight > cell.clientHeight + 1 || cell.scrollWidth > cell.clientWidth + 1)) {
-                        fs -= 0.5;
-                        cell.style.fontSize = fs + "px";
-                    }
+            // Nummeret i boksen skaleres efter boksens egen størrelse (før transform).
+            function fitNums() {
+                plan.querySelectorAll(".pbox").forEach(function (el) {
+                    var w = parseFloat(el.style.width) || 0, h = parseFloat(el.style.height) || 0;
+                    var num = el.querySelector(".pnum");
+                    if (!num) return;
+                    var fs = Math.max(11, Math.min(Math.min(w, h) * 0.5, 80));
+                    num.style.fontSize = fs + "px";
                 });
+            }
+
+            // Skru ned for varelistens tekst hvis den ikke kan være i kolonnen.
+            function fitLegend() {
+                var list = document.getElementById("legendList");
+                if (!list) return;
+                var box = list.parentElement;
+                var avail = box.clientHeight - list.offsetTop + box.offsetTop - 4;
+                var fs = 13, pad = 4;
+                list.style.fontSize = fs + "px";
+                var guard = 0;
+                while (list.scrollHeight > avail && guard++ < 18) {
+                    fs -= 0.5; pad -= 0.15;
+                    list.querySelectorAll(".lg-txt").forEach(function (t) { t.style.fontSize = fs + "px"; });
+                    list.querySelectorAll("li").forEach(function (li) { li.style.paddingTop = li.style.paddingBottom = Math.max(1, pad) + "px"; });
+                    if (fs <= 8) break;
+                }
             }
 
             function fit() {
@@ -262,7 +315,6 @@
                 var s = Math.min(aw / b.w, ah / b.h, 4);
                 if (!(s > 0)) s = 0.4;
 
-                // Placér indholdets midte i midten af tegneområdet (transform-origin 0 0).
                 var tx = aw / 2 - (b.x + b.w / 2) * s;
                 var ty = ah / 2 - (b.y + b.h / 2) * s;
 
@@ -271,7 +323,7 @@
                 plan.style.setProperty("--ty", ty.toFixed(1) + "px");
             }
 
-            function refresh() { fit(); fitText(); }
+            function refresh() { fitNums(); fit(); fitLegend(); }
 
             refresh();
             window.addEventListener("load", refresh);
