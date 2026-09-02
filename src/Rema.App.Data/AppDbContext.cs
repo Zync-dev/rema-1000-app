@@ -23,6 +23,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvide
     public DbSet<StoreAiSettings> StoreAiSettings => Set<StoreAiSettings>();
     public DbSet<FacebookStyleExample> FacebookStyleExamples => Set<FacebookStyleExample>();
     public DbSet<FacebookPost> FacebookPosts => Set<FacebookPost>();
+    public DbSet<Checklist> Checklists => Set<Checklist>();
+    public DbSet<ChecklistItem> ChecklistItems => Set<ChecklistItem>();
+    public DbSet<ChecklistDay> ChecklistDays => Set<ChecklistDay>();
+    public DbSet<ChecklistTask> ChecklistTasks => Set<ChecklistTask>();
 
     /// <inheritdoc />
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
@@ -41,6 +45,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvide
             builder.Entity<StoreAiSettings>().Property(x => x.Id),
             builder.Entity<FacebookStyleExample>().Property(x => x.Id),
             builder.Entity<FacebookPost>().Property(x => x.Id),
+            builder.Entity<Checklist>().Property(x => x.Id),
+            builder.Entity<ChecklistItem>().Property(x => x.Id),
+            builder.Entity<ChecklistDay>().Property(x => x.Id),
+            builder.Entity<ChecklistTask>().Property(x => x.Id),
         })
         {
             key.HasValueGenerator<GuidV7ValueGenerator>().ValueGeneratedOnAdd();
@@ -109,6 +117,44 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvide
             e.HasIndex(p => new { p.StoreId, p.CreatedUtc });
         });
 
+        builder.Entity<Checklist>(e =>
+        {
+            e.Property(c => c.Title).IsRequired();
+            e.Property(c => c.Recurrence).HasConversion<string>().HasMaxLength(20);
+            e.HasIndex(c => new { c.StoreId, c.IsArchived });
+            e.HasMany(c => c.Items)
+                .WithOne(i => i.Checklist!)
+                .HasForeignKey(i => i.ChecklistId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(c => c.Days)
+                .WithOne(d => d.Checklist!)
+                .HasForeignKey(d => d.ChecklistId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<ChecklistItem>(e =>
+        {
+            e.Property(i => i.Title).IsRequired();
+            e.HasIndex(i => i.ChecklistId);
+        });
+
+        builder.Entity<ChecklistDay>(e =>
+        {
+            e.HasIndex(d => new { d.ChecklistId, d.Date }).IsUnique();
+            e.HasIndex(d => new { d.StoreId, d.Date });
+            e.HasMany(d => d.Tasks)
+                .WithOne(t => t.Day!)
+                .HasForeignKey(t => t.ChecklistDayId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<ChecklistTask>(e =>
+        {
+            e.Property(t => t.Title).IsRequired();
+            e.HasIndex(t => new { t.StoreId, t.Done });
+            e.HasIndex(t => t.ChecklistDayId);
+        });
+
         // Globalt tenant-filter på alt butiks-ejet data.
         builder.Entity<ProductCalculation>()
             .HasQueryFilter(p => p.StoreId == _tenantProvider.StoreId);
@@ -122,6 +168,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvide
             .HasQueryFilter(x => x.StoreId == _tenantProvider.StoreId);
         builder.Entity<FacebookPost>()
             .HasQueryFilter(p => p.StoreId == _tenantProvider.StoreId);
+        builder.Entity<Checklist>()
+            .HasQueryFilter(c => c.StoreId == _tenantProvider.StoreId);
+        builder.Entity<ChecklistItem>()
+            .HasQueryFilter(i => i.StoreId == _tenantProvider.StoreId);
+        builder.Entity<ChecklistDay>()
+            .HasQueryFilter(d => d.StoreId == _tenantProvider.StoreId);
+        builder.Entity<ChecklistTask>()
+            .HasQueryFilter(t => t.StoreId == _tenantProvider.StoreId);
     }
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)

@@ -515,6 +515,14 @@ textarea.form-control { line-height: 1.55; }
   background: var(--surface);
   box-shadow: var(--shadow-sm);
 }
+/* Link-baseret variant (samme udseende, uden radio-inputs) */
+.segmented > a {
+  border-radius: 6px; padding: .4rem .8rem; font-size: .85rem; font-weight: 600;
+  color: var(--ink-soft); text-decoration: none; text-align: center;
+}
+.segmented > a:hover { color: var(--ink); background: var(--surface); }
+.segmented > a.is-active { color: var(--rema-blue-800); background: var(--surface); box-shadow: var(--shadow-sm); }
+@media (max-width: 420px) { .segmented > a { flex: 1; } }
 
 /* Validation */
 .validation-summary-errors, .field-validation-error, .text-danger { color: var(--danger) !important; }
@@ -907,6 +915,54 @@ kbd {
 
 /* Menu-links skal se ud som menu-knapper */
 a.appbar__menu-item { text-decoration: none; }
+
+/* ============================================================
+   Opgavelister
+   ============================================================ */
+.notice {
+  display: block; text-decoration: none;
+  border: 1px solid var(--border); border-radius: var(--r);
+  padding: .8rem 1rem; color: var(--ink); background: var(--surface);
+}
+.notice--warn { background: var(--warn-bg); border-color: color-mix(in srgb, var(--warn) 30%, transparent); color: var(--warn); }
+.notice--warn .icon { color: var(--warn); }
+.notice:hover { border-color: var(--border-strong); }
+
+.checklist-card__head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.checklist-card__head h2 { font-size: 1.05rem; margin: 0; }
+.checklist-card__count { font-size: .85rem; font-weight: 700; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.checklist-card.is-complete { border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+.checklist-card.is-complete .checklist-card__count { color: var(--ok); }
+
+.task-list { list-style: none; margin: .8rem 0 0; padding: 0; }
+.task {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .55rem 0; border-top: 1px solid var(--border);
+}
+.task:first-child { border-top: 0; }
+.task__toggle { margin: 0; flex: none; }
+.task__check {
+  border: 0; background: none; padding: 2px; cursor: pointer; display: block;
+  color: var(--ink-faint); border-radius: 999px;
+}
+.task__check .icon { width: 1.6rem; height: 1.6rem; }
+.task__check:hover { color: var(--rema-blue); }
+.task.is-done .task__check { color: var(--ok); }
+.task__title { flex: 1 1 auto; min-width: 0; font-weight: 550; }
+.task.is-done .task__title { text-decoration: line-through; color: var(--ink-faint); text-decoration-thickness: 1px; }
+.task__meta { flex: none; }
+
+/* Redigering af en tjeklistes opgaver */
+.edit-item-list { list-style: none; margin: 0 0 1rem; padding: 0; }
+.edit-item { display: flex; align-items: center; gap: .4rem; padding: .4rem 0; border-top: 1px solid var(--border); flex-wrap: wrap; }
+.edit-item:first-child { border-top: 0; }
+.edit-item__form { display: flex; align-items: center; gap: .4rem; margin: 0; flex: 1 1 20rem; }
+.edit-item__form .form-control { flex: 1 1 8rem; }
+.edit-item__actions { display: flex; gap: .15rem; }
+.edit-item__actions form { margin: 0; }
+.edit-item__add { margin-top: .5rem; padding-top: .8rem; border-top: 1px solid var(--border); }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--ink-soft); box-shadow: none; padding: .25rem .45rem; }
+.btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
 
 /* Loginoplysninger der vises én gang efter en konto er oprettet */
 .cred-box {

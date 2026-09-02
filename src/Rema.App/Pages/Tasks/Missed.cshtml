@@ -1,0 +1,61 @@
+@page "/opgaver/ikke-naaet"
+@model Rema.App.Pages.Tasks.MissedModel
+@{
+    ViewData["Title"] = "Ikke nået";
+}
+
+<header class="page-head">
+    <div>
+        <a class="page-head__back" asp-page="Index"><svg class="icon"><use href="#i-arrow-left" /></svg> Dagens opgaver</a>
+        <h1>Ikke nået</h1>
+        <p class="page-head__sub">Opgaver fra tidligere dage der stadig er åbne.</p>
+    </div>
+</header>
+
+@if (Model.Days.Count == 0)
+{
+    <div class="empty-state">
+        <svg class="icon icon--lg"><use href="#i-check-circle" /></svg>
+        <h2>Alt er nået</h2>
+        <p>Der er ingen udestående opgaver fra tidligere dage.</p>
+    </div>
+}
+
+<div class="stack">
+    @foreach (var day in Model.Days)
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="checklist-card__head">
+                    <h2>@day.Date.ToRelativeDay()</h2>
+                    <span class="checklist-card__count">@day.Tasks.Count åbne</span>
+                </div>
+                <ul class="task-list">
+                    @foreach (var t in day.Tasks)
+                    {
+                        <li class="task">
+                            <form method="post" asp-page-handler="Done" asp-route-id="@t.Id" class="task__toggle">
+                                <button type="submit" class="task__check" aria-label="Markér som nået">
+                                    <svg class="icon"><use href="#i-circle" /></svg>
+                                </button>
+                            </form>
+                            <span class="task__title">
+                                @t.Title
+                                <span class="text-muted small">· @t.Checklist</span>
+                            </span>
+                            <span class="task__meta d-flex align-items-center gap-2">
+                                @if (t.Assignee is not null)
+                                {
+                                    <span class="pill pill--muted">@t.Assignee</span>
+                                }
+                                <form method="post" asp-page-handler="Move" asp-route-id="@t.Id">
+                                    <button class="btn btn-sm btn-outline-secondary text-nowrap">Flyt til i dag</button>
+                                </form>
+                            </span>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    }
+</div>

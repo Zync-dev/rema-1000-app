@@ -1,0 +1,130 @@
+@page "/opgaver/lister/{id:guid}"
+@using Rema.App.Data.Entities
+@model Rema.App.Pages.Tasks.ListModel
+@{
+    ViewData["Title"] = Model.Checklist.Title;
+    var items = Model.Checklist.Items.OrderBy(i => i.Position).ThenBy(i => i.Title).ToList();
+}
+
+<header class="page-head">
+    <div>
+        <a class="page-head__back" asp-page="Lists"><svg class="icon"><use href="#i-arrow-left" /></svg> Tjeklister</a>
+        <h1>@Model.Checklist.Title</h1>
+        @if (Model.Checklist.IsArchived) { <p class="page-head__sub">Arkiveret – laver ikke flere opgaver.</p> }
+    </div>
+</header>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="section-title">Opgaver</h2>
+
+                @if (items.Count == 0)
+                {
+                    <p class="text-muted">Ingen opgaver endnu. Tilføj den første herunder.</p>
+                }
+                <ul class="edit-item-list">
+                    @foreach (var (item, idx) in items.Select((x, i) => (x, i)))
+                    {
+                        <li class="edit-item">
+                            <form method="post" asp-page-handler="UpdateItem" class="edit-item__form">
+                                <input type="hidden" name="itemId" value="@item.Id" />
+                                <input name="title" value="@item.Title" class="form-control form-control-sm" maxlength="200" />
+                                <select name="assignee" class="form-select form-select-sm" style="max-width: 11rem">
+                                    <option value="">Alle</option>
+                                    @foreach (var a in Model.Assignees)
+                                    {
+                                        <option value="@a.Id" selected="@(a.Id == item.AssigneeUserId)">@a.DisplayName</option>
+                                    }
+                                </select>
+                                <button class="btn btn-sm btn-outline-secondary" title="Gem"><svg class="icon"><use href="#i-check" /></svg></button>
+                            </form>
+                            <div class="edit-item__actions">
+                                <form method="post" asp-page-handler="MoveItem"><input type="hidden" name="itemId" value="@item.Id" /><input type="hidden" name="dir" value="-1" /><button class="btn btn-sm btn-ghost" title="Op" disabled="@(idx == 0)">↑</button></form>
+                                <form method="post" asp-page-handler="MoveItem"><input type="hidden" name="itemId" value="@item.Id" /><input type="hidden" name="dir" value="1" /><button class="btn btn-sm btn-ghost" title="Ned" disabled="@(idx == items.Count - 1)">↓</button></form>
+                                <form method="post" asp-page-handler="DeleteItem" onsubmit="return confirm('Slet opgaven fra listen?');"><input type="hidden" name="itemId" value="@item.Id" /><button class="btn btn-sm btn-ghost text-danger" title="Slet"><svg class="icon"><use href="#i-trash" /></svg></button></form>
+                            </div>
+                        </li>
+                    }
+                </ul>
+
+                <form method="post" asp-page-handler="AddItem" class="edit-item__add stack">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <input asp-for="NewItem.Title" class="form-control form-control-sm" style="flex: 1 1 12rem" placeholder="Ny opgave – fx “Fej ved indgangen”" />
+                        <select asp-for="NewItem.AssigneeUserId" class="form-select form-select-sm" style="max-width: 11rem">
+                            <option value="">Alle</option>
+                            @foreach (var a in Model.Assignees)
+                            {
+                                <option value="@a.Id">@a.DisplayName</option>
+                            }
+                        </select>
+                        <button class="btn btn-sm btn-primary"><svg class="icon"><use href="#i-plus" /></svg> Tilføj</button>
+                    </div>
+                    <span asp-validation-for="NewItem.Title" class="text-danger small"></span>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="section-title">Indstillinger</h2>
+                <form method="post" asp-page-handler="Details" class="stack">
+                    <div>
+                        <label asp-for="Details.Title" class="form-label"></label>
+                        <input asp-for="Details.Title" class="form-control" />
+                        <span asp-validation-for="Details.Title" class="text-danger small"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Details.Notes" class="form-label"></label>
+                        <textarea asp-for="Details.Notes" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div>
+                        <label asp-for="Details.Recurrence" class="form-label"></label>
+                        <select asp-for="Details.Recurrence" class="form-select" id="recSel">
+                            <option value="@ChecklistRecurrence.Daily">Hver dag</option>
+                            <option value="@ChecklistRecurrence.Weekdays">Mandag til fredag</option>
+                            <option value="@ChecklistRecurrence.Once">Kun én dato</option>
+                        </select>
+                    </div>
+                    <div id="dateRow" class="@(Model.Details.Recurrence == ChecklistRecurrence.Once ? "" : "d-none")">
+                        <label asp-for="Details.Date" class="form-label"></label>
+                        <input asp-for="Details.Date" type="date" class="form-control" />
+                        <span asp-validation-for="Details.Date" class="text-danger small"></span>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Gem indstillinger</button>
+                </form>
+
+                <hr class="divider" />
+
+                <div class="stack">
+                    @if (Model.Checklist.IsArchived)
+                    {
+                        <form method="post" asp-page-handler="Archive"><input type="hidden" name="archive" value="false" /><button class="btn btn-sm btn-outline-primary w-100">Gør aktiv igen</button></form>
+                    }
+                    else
+                    {
+                        <form method="post" asp-page-handler="Archive"><input type="hidden" name="archive" value="true" /><button class="btn btn-sm btn-outline-secondary w-100">Arkivér</button></form>
+                    }
+                    <form method="post" asp-page-handler="Delete" onsubmit="return confirm('Slet tjeklisten OG al historik om hvad der er krydset af? Kan ikke fortrydes.');">
+                        <button class="btn btn-sm btn-outline-danger w-100"><svg class="icon"><use href="#i-trash" /></svg> Slet helt</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var sel = document.getElementById("recSel"), row = document.getElementById("dateRow");
+            function sync() { row.classList.toggle("d-none", sel.value !== "@ChecklistRecurrence.Once"); }
+            sel.addEventListener("change", sync);
+        })();
+    </script>
+}

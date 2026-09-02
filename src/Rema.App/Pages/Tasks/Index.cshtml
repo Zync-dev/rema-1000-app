@@ -1,0 +1,128 @@
+@page "/opgaver"
+@model Rema.App.Pages.Tasks.IndexModel
+@{
+    ViewData["Title"] = "Dagens opgaver";
+    var isLeder = User.IsInRole("Koebmand") || User.IsInRole("Souschef");
+}
+
+<header class="page-head">
+    <div>
+        <h1>Dagens opgaver</h1>
+        <p class="page-head__sub">@Model.Today.ToDateString()</p>
+    </div>
+    @if (isLeder)
+    {
+        <div class="page-head__actions">
+            <a asp-page="Lists" class="btn btn-outline-secondary"><svg class="icon"><use href="#i-clipboard" /></svg> Rediger lister</a>
+        </div>
+    }
+</header>
+
+@if (Model.MissedCount > 0)
+{
+    <a asp-page="Missed" class="notice notice--warn d-flex align-items-center gap-2 mb-3">
+        <svg class="icon"><use href="#i-alert" /></svg>
+        <span class="flex-grow-1"><strong>@Model.MissedCount</strong> @(Model.MissedCount == 1 ? "opgave" : "opgaver") blev ikke nået tidligere.</span>
+        <span class="text-nowrap">Se hvad <svg class="icon"><use href="#i-arrow-right" /></svg></span>
+    </a>
+}
+
+<div class="segmented mb-3" role="tablist">
+    <a asp-page="Index" asp-route-mine="false" class="@(Model.MineOnly ? "" : "is-active")">Alle</a>
+    <a asp-page="Index" asp-route-mine="true" class="@(Model.MineOnly ? "is-active" : "")">Mine</a>
+</div>
+
+@if (Model.Groups.Count == 0)
+{
+    <div class="empty-state">
+        <svg class="icon icon--lg"><use href="#i-check-circle" /></svg>
+        <h2>@(Model.MineOnly ? "Ingen opgaver til dig i dag" : "Ingen opgaver i dag")</h2>
+        @if (isLeder)
+        {
+            <p>Opret en tjekliste, så dukker dagens opgaver op her.</p>
+            <a asp-page="Lists" class="btn btn-primary mt-2">Opret tjekliste</a>
+        }
+        else
+        {
+            <p>Der er ikke lagt nogen tjeklister ind endnu.</p>
+        }
+    </div>
+}
+
+<div class="stack">
+    @foreach (var g in Model.Groups)
+    {
+        <div class="card checklist-card @(g.AllDone ? "is-complete" : "")">
+            <div class="card-body">
+                <div class="checklist-card__head">
+                    <h2>@g.Title</h2>
+                    <span class="checklist-card__count">@g.DoneCount / @g.Tasks.Count</span>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(g.Notes))
+                {
+                    <p class="text-muted small mt-1 mb-0">@g.Notes</p>
+                }
+                <ul class="task-list">
+                    @foreach (var t in g.Tasks)
+                    {
+                        <li class="task @(t.Done ? "is-done" : "")">
+                            <form method="post" asp-page-handler="Toggle" asp-route-id="@t.Id" asp-route-mine="@Model.MineOnly" class="task__toggle">
+                                <button type="submit" class="task__check" aria-pressed="@(t.Done ? "true" : "false")" aria-label="Skift status">
+                                    <svg class="icon"><use href="@(t.Done ? "#i-check-circle" : "#i-circle")" /></svg>
+                                </button>
+                            </form>
+                            <span class="task__title">@t.Title</span>
+                            <span class="task__meta">
+                                @if (t.Done && t.DoneBy is not null)
+                                {
+                                    <span class="pill pill--ok">@t.DoneBy</span>
+                                }
+                                else if (t.Assignee is not null)
+                                {
+                                    <span class="pill @(t.Mine ? "pill--blue" : "pill--muted")">@t.Assignee</span>
+                                }
+                            </span>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Kryds af uden at genindlæse siden. Virker også uden JS (almindelig POST).
+        document.querySelectorAll(".task__toggle").forEach(function (form) {
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                var li = form.closest(".task");
+                var btn = form.querySelector(".task__check");
+                btn.disabled = true;
+                fetch(form.action, {
+                    method: "POST",
+                    headers: { "X-Requested-With": "fetch", "RequestVerificationToken": tokenFor(form) },
+                    body: new FormData(form),
+                }).then(function (r) { return r.json(); }).then(function (data) {
+                    li.classList.toggle("is-done", data.done);
+                    var use = btn.querySelector("use");
+                    use.setAttribute("href", data.done ? "#i-check-circle" : "#i-circle");
+                    btn.setAttribute("aria-pressed", data.done ? "true" : "false");
+                    updateCount(li.closest(".checklist-card"));
+                }).catch(function () { form.submit(); })
+                  .finally(function () { btn.disabled = false; });
+            });
+        });
+        function tokenFor(form) {
+            var i = form.querySelector('input[name="__RequestVerificationToken"]');
+            return i ? i.value : "";
+        }
+        function updateCount(card) {
+            if (!card) return;
+            var tasks = card.querySelectorAll(".task");
+            var done = card.querySelectorAll(".task.is-done").length;
+            card.querySelector(".checklist-card__count").textContent = done + " / " + tasks.length;
+            card.classList.toggle("is-complete", done === tasks.length && tasks.length > 0);
+        }
+    </script>
+}

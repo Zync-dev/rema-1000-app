@@ -38,6 +38,9 @@ builder.Services.AddScoped<ITenantProvider, HttpTenantProvider>();
 // --- Butikkens brugere ---------------------------------------------------
 builder.Services.AddScoped<Rema.App.Services.TeamDirectory>();
 
+// --- Opgavelister ------------------------------------------------------
+builder.Services.AddScoped<Rema.App.Services.ChecklistService>();
+
 // --- AI (Facebook-opslag) ------------------------------------------------
 builder.Services.AddSingleton<Rema.App.Services.Ai.ApiKeyProtector>();
 builder.Services.AddHttpClient<Rema.App.Services.Ai.GeminiClient>(c =>

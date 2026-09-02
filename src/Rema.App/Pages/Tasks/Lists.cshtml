@@ -1,0 +1,99 @@
+@page "/opgaver/lister"
+@using Rema.App.Data.Entities
+@model Rema.App.Pages.Tasks.ListsModel
+@{
+    ViewData["Title"] = "Tjeklister";
+
+    string RecurrenceLabel(ChecklistRecurrence r, DateOnly? d) => r switch
+    {
+        ChecklistRecurrence.Daily => "Hver dag",
+        ChecklistRecurrence.Weekdays => "Man–fre",
+        ChecklistRecurrence.Once => d is { } dd ? dd.ToWeekdayDate() : "Én dag",
+        _ => r.ToString(),
+    };
+}
+
+<header class="page-head">
+    <div>
+        <a class="page-head__back" asp-page="Index"><svg class="icon"><use href="#i-arrow-left" /></svg> Dagens opgaver</a>
+        <h1>Tjeklister</h1>
+        <p class="page-head__sub">Skabelonerne der bliver til dagens opgaver.</p>
+    </div>
+</header>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        @if (Model.Checklists.Count == 0)
+        {
+            <div class="empty-state">
+                <svg class="icon icon--lg"><use href="#i-clipboard" /></svg>
+                <h2>Ingen tjeklister endnu</h2>
+                <p>Opret den første med formularen.</p>
+            </div>
+        }
+        else
+        {
+            <div class="list-group">
+                @foreach (var c in Model.Checklists)
+                {
+                    <a class="list-group-item data-row d-flex justify-content-between align-items-center gap-3 @(c.IsArchived ? "opacity-50" : "")"
+                       asp-page="List" asp-route-id="@c.Id">
+                        <div class="min-w-0">
+                            <span class="data-row__title">@c.Title</span>
+                            <div class="data-row__meta">
+                                @RecurrenceLabel(c.Recurrence, c.Date) · @c.ItemCount @(c.ItemCount == 1 ? "opgave" : "opgaver")
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 align-items-center flex-shrink-0">
+                            @if (c.IsArchived) { <span class="pill">Arkiveret</span> }
+                            <svg class="icon text-muted"><use href="#i-arrow-right" /></svg>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="section-title">Ny tjekliste</h2>
+                <form method="post" class="stack">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+                    <div>
+                        <label asp-for="Input.Title" class="form-label"></label>
+                        <input asp-for="Input.Title" class="form-control" placeholder="Fx Morgenrutine" />
+                        <span asp-validation-for="Input.Title" class="text-danger small"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Input.Recurrence" class="form-label"></label>
+                        <select asp-for="Input.Recurrence" class="form-select" id="recSel">
+                            <option value="@ChecklistRecurrence.Daily">Hver dag</option>
+                            <option value="@ChecklistRecurrence.Weekdays">Mandag til fredag</option>
+                            <option value="@ChecklistRecurrence.Once">Kun én dato</option>
+                        </select>
+                    </div>
+                    <div id="dateRow" class="d-none">
+                        <label asp-for="Input.Date" class="form-label"></label>
+                        <input asp-for="Input.Date" type="date" class="form-control" />
+                        <span asp-validation-for="Input.Date" class="text-danger small"></span>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <svg class="icon"><use href="#i-plus" /></svg> Opret
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var sel = document.getElementById("recSel"), row = document.getElementById("dateRow");
+            function sync() { row.classList.toggle("d-none", sel.value !== "@ChecklistRecurrence.Once"); }
+            sel.addEventListener("change", sync); sync();
+        })();
+    </script>
+}
