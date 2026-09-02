@@ -89,127 +89,214 @@ a:hover { text-decoration-color: var(--rema-blue-100); }
    App bar (top navigation)
    ============================================================ */
 .appbar {
+  --appbar-h: 58px;
   position: sticky;
   top: 0;
   z-index: 1030;
-  background: linear-gradient(180deg, var(--rema-blue) 0%, var(--rema-blue-700) 100%);
-  border-bottom: 3px solid var(--rema-red);
+  box-shadow: 0 4px 18px -8px rgba(3, 18, 42, .35);
+  transition: box-shadow .3s ease;
 }
+/* Hårfin rød brand-linje forneden */
+.appbar::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 2px;
+  z-index: 2;
+  background: linear-gradient(90deg, var(--rema-red), #ff6a5e 45%, var(--rema-red));
+}
+/* Farvelag bag indholdet (holdt adskilt fra .appbar, så popover-menuen ikke bliver påvirket). */
+.appbar__glow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(177deg, #0b54a8, #073a76);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), inset 0 -1px 0 rgba(0, 0, 0, .14);
+  transition: background .3s ease;
+}
+/* Blødt lysglimt der toner ind når man scroller */
+.appbar__glow::before {
+  content: "";
+  position: absolute;
+  top: -60%; left: 12%;
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, rgba(255, 255, 255, .16), transparent 62%);
+  opacity: 0;
+  transition: opacity .5s ease;
+}
+.appbar.is-scrolled { --appbar-h: 50px; box-shadow: 0 12px 34px -12px rgba(3, 18, 42, .6); }
+.appbar.is-scrolled .appbar__glow { background: linear-gradient(177deg, #09468e, #062e60); }
+.appbar.is-scrolled .appbar__glow::before { opacity: 1; }
+
 .appbar__inner {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  min-height: 62px;
+  gap: 1.25rem;
+  height: var(--appbar-h);
   position: relative;
+  z-index: 1;
+  transition: height .3s cubic-bezier(.4, 0, .2, 1);
 }
 
 /* --- Brand --------------------------------------------------- */
 .appbar__brand {
   display: flex;
   align-items: center;
-  gap: .7rem;
+  gap: .8rem;
   flex: none;
   text-decoration: none;
-  padding: .4rem 0;
 }
-.appbar__logo {
+.appbar__mark {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   background: #fff;
-  border-radius: 9px;
-  padding: .34rem .62rem;
-  box-shadow: 0 2px 10px rgba(3, 26, 53, .35);
+  border-radius: 8px;
+  padding: 5px 9px;
+  box-shadow: 0 4px 14px -3px rgba(3, 18, 42, .5), 0 0 0 1px rgba(255, 255, 255, .35);
+  transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), box-shadow .18s ease;
 }
-.appbar__logo img { height: 21px; width: auto; display: block; }
-.appbar__wordmark { display: none; font-weight: 800; color: var(--rema-blue); letter-spacing: .02em; font-size: 1rem; }
-.appbar__brand.brand--nologo .appbar__logo { background: transparent; box-shadow: none; padding: 0; }
-.appbar__brand.brand--nologo .appbar__logo img { display: none; }
-.appbar__brand.brand--nologo .appbar__wordmark { display: inline; color: #fff; }
+.appbar__brand:hover .appbar__mark { transform: translateY(-1px) scale(1.02); box-shadow: 0 6px 18px -3px rgba(3, 18, 42, .55), 0 0 0 1px rgba(255, 255, 255, .5); }
+.appbar__mark img { height: 17px; width: auto; display: block; transition: height .3s ease; }
+.is-scrolled .appbar__mark img { height: 15px; }
+.appbar__marktext { display: none; font-weight: 800; color: var(--rema-blue); letter-spacing: .02em; font-size: .95rem; }
+.brand--nologo .appbar__mark { background: transparent; box-shadow: none; padding: 0; }
+.brand--nologo .appbar__mark img { display: none; }
+.brand--nologo .appbar__marktext { display: inline; color: #fff; }
 
 .appbar__product {
-  font-size: .68rem;
+  font-size: .62rem;
   font-weight: 700;
-  letter-spacing: .14em;
+  letter-spacing: .16em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, .58);
-  padding-left: .85rem;
-  border-left: 1px solid rgba(255, 255, 255, .2);
+  color: rgba(255, 255, 255, .5);
+  padding-left: .9rem;
+  border-left: 1px solid rgba(255, 255, 255, .18);
   white-space: nowrap;
 }
-@media (max-width: 560px) { .appbar__product { display: none; } }
+@media (max-width: 1080px) { .appbar__product { display: none; } }
 
-/* --- Nav ---------------------------------------------------- */
+/* --- Nav --------------------------------------------------- */
 .appbar__nav {
   display: flex;
   align-items: center;
-  gap: .2rem;
+  gap: 1px;
   flex: 1 1 auto;
   min-width: 0;
+  position: relative;
 }
-.appbar__link {
-  display: inline-flex;
-  align-items: center;
-  gap: .48rem;
-  white-space: nowrap;
-  padding: .5rem .8rem;
+/* Den glidende indikator-pille */
+.appbar__pill {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 34px;
+  width: 0;
+  transform: translate(0, -50%);
   border-radius: 9px;
-  font-size: .92rem;
-  font-weight: 550;
-  color: rgba(255, 255, 255, .78);
-  text-decoration: none;
-  transition: background .12s ease, color .12s ease;
+  background: rgba(255, 255, 255, .16);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14), 0 2px 10px -4px rgba(0, 0, 0, .3);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+  transition:
+    transform .42s cubic-bezier(.32, 1.4, .5, 1),
+    width .42s cubic-bezier(.32, 1.4, .5, 1),
+    opacity .2s ease;
 }
-.appbar__link .icon { width: 1.05em; height: 1.05em; opacity: .8; }
-.appbar__link:hover { color: #fff; background: rgba(255, 255, 255, .1); }
-.appbar__link:hover .icon { opacity: 1; }
-.appbar__link.active {
-  color: #fff;
-  background: rgba(255, 255, 255, .15);
-  font-weight: 650;
-}
-.appbar__link.active .icon { opacity: 1; }
+.appbar__nav.pill-ready .appbar__pill { opacity: 1; }
 
-/* --- User menu -------------------------------------------- */
-.appbar__user { position: relative; margin-left: auto; flex: none; }
-.appbar__userbtn {
+.appbar__link {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
-  gap: .5rem;
-  max-width: 240px;
-  padding: .42rem .6rem .42rem .75rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, .2);
-  background: rgba(255, 255, 255, .1);
-  color: #fff;
-  font-size: .88rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background .12s ease, border-color .12s ease;
+  gap: .44rem;
+  white-space: nowrap;
+  padding: .42rem .66rem;
+  border-radius: 9px;
+  font-size: .855rem;
+  font-weight: 550;
+  color: rgba(255, 255, 255, .74);
+  text-decoration: none;
+  transition: color .16s ease;
 }
-.appbar__userbtn:hover { background: rgba(255, 255, 255, .16); border-color: rgba(255, 255, 255, .35); }
-.appbar__userbtn .icon { flex: none; width: 1.05em; height: 1.05em; }
-.appbar__storename { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.appbar__chev { width: .85em; height: .85em; opacity: .7; transition: transform .16s ease; }
-.appbar__userbtn[aria-expanded="true"] .appbar__chev { transform: rotate(180deg); }
+.appbar__link .icon { width: 16px; height: 16px; opacity: .7; transition: opacity .16s ease, transform .16s ease; }
+.appbar__link:hover { color: #fff; }
+.appbar__link:hover .icon { opacity: 1; transform: translateY(-1px); }
+.appbar__link.active { color: #fff; font-weight: 650; }
+.appbar__link.active .icon { opacity: 1; filter: drop-shadow(0 0 5px rgba(255, 255, 255, .45)); }
+/* Uden JS: klassisk baggrund på hover/aktiv */
+.appbar__nav:not(.pill-ready) .appbar__link:hover { background: rgba(255, 255, 255, .1); }
+.appbar__nav:not(.pill-ready) .appbar__link.active { background: rgba(255, 255, 255, .15); }
+
+/* Diskret indflyvning af menupunkterne (kun desktop, kun første load) */
+@media (min-width: 992px) and (prefers-reduced-motion: no-preference) {
+  .appbar__link { animation: navlink-in .4s cubic-bezier(.22, .7, .3, 1) backwards; }
+  .appbar__link:nth-of-type(1) { animation-delay: .04s; }
+  .appbar__link:nth-of-type(2) { animation-delay: .08s; }
+  .appbar__link:nth-of-type(3) { animation-delay: .12s; }
+  .appbar__link:nth-of-type(4) { animation-delay: .16s; }
+  .appbar__link:nth-of-type(5) { animation-delay: .20s; }
+  .appbar__link:nth-of-type(6) { animation-delay: .24s; }
+  .appbar__link:nth-of-type(7) { animation-delay: .28s; }
+}
+@keyframes navlink-in { from { opacity: 0; transform: translateY(-7px); } }
+
+/* --- Butiks-avatar + menu -------------------------------- */
+.appbar__user { position: relative; margin-left: auto; flex: none; }
+.appbar__avatar {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .28);
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+  cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, transform .16s cubic-bezier(.34, 1.56, .64, 1);
+}
+.appbar__avatar::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 1.5px solid rgba(255, 255, 255, .3);
+  opacity: 0;
+  transform: scale(.7);
+  transition: opacity .2s ease, transform .25s cubic-bezier(.34, 1.56, .64, 1);
+}
+.appbar__avatar:hover { background: rgba(255, 255, 255, .2); border-color: rgba(255, 255, 255, .5); transform: translateY(-1px); }
+.appbar__avatar:hover::after,
+.appbar__user.is-open .appbar__avatar::after { opacity: 1; transform: scale(1); }
+.appbar__user.is-open .appbar__avatar { background: #fff; color: var(--rema-blue); border-color: #fff; }
+.appbar__monogram { font-size: .82rem; font-weight: 800; letter-spacing: .01em; line-height: 1; }
+.appbar__store { display: none; width: 17px; height: 17px; }
 
 .appbar__menu {
   position: absolute;
-  top: calc(100% + .5rem);
+  top: calc(100% + .55rem);
   right: 0;
-  min-width: 230px;
+  min-width: 234px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 13px;
+  border-radius: 14px;
   box-shadow: var(--shadow-lg);
   padding: .4rem;
   opacity: 0;
-  transform: translateY(-6px) scale(.98);
+  transform: translateY(-8px) scale(.97);
   transform-origin: top right;
   pointer-events: none;
-  transition: opacity .13s ease, transform .13s ease;
+  transition: opacity .15s ease, transform .18s cubic-bezier(.34, 1.4, .5, 1);
 }
 .appbar__user.is-open .appbar__menu { opacity: 1; transform: none; pointer-events: auto; }
-.appbar__menu-head { padding: .55rem .7rem .6rem; line-height: 1.35; }
+.appbar__menu-head { padding: .6rem .7rem .65rem; line-height: 1.35; }
 .appbar__menu-head strong { display: block; color: var(--ink); font-size: .95rem; }
 .appbar__menu-head span { font-size: .82rem; color: var(--ink-faint); }
 .appbar__menu form { margin: 0; }
@@ -234,7 +321,7 @@ a:hover { text-decoration-color: var(--rema-blue-100); }
 .appbar__menu::before {
   content: "";
   position: absolute;
-  top: -1px; right: 18px;
+  top: -1px; right: 16px;
   width: 10px; height: 10px;
   background: var(--surface);
   border-left: 1px solid var(--border);
@@ -266,39 +353,41 @@ a:hover { text-decoration-color: var(--rema-blue-100); }
 .appbar__toggle {
   display: none;
   margin-left: auto;
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  border-radius: 10px;
+  border-radius: 11px;
   border: 1px solid rgba(255, 255, 255, .22);
-  background: rgba(255, 255, 255, .08);
+  background: rgba(255, 255, 255, .1);
   cursor: pointer;
+  transition: background .15s ease;
 }
+.appbar__toggle:hover { background: rgba(255, 255, 255, .18); }
 .appbar__toggle span {
   display: block;
-  width: 18px;
+  width: 17px;
   height: 2px;
   border-radius: 2px;
   background: #fff;
-  transition: transform .2s ease, opacity .2s ease;
+  transition: transform .22s cubic-bezier(.5, .2, .2, 1), opacity .18s ease;
 }
 .appbar__toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
 .appbar__toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
 .appbar__toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-/* Tighten spacing on mid-width desktops so nothing wraps */
-@media (min-width: 992px) and (max-width: 1160px) {
-  .appbar__inner { gap: 1rem; }
-  .appbar__link { padding-inline: .6rem; font-size: .875rem; gap: .38rem; }
-  .appbar__userbtn { max-width: 180px; }
+/* Tighten a touch on smaller desktops */
+@media (min-width: 992px) and (max-width: 1120px) {
+  .appbar__inner { gap: .85rem; }
+  .appbar__link { padding-inline: .5rem; gap: .36rem; font-size: .83rem; }
 }
 
 /* --- Mobile ------------------------------------------- */
 @media (max-width: 991.98px) {
-  .appbar { z-index: 1040; }
+  .appbar { --appbar-h: 56px; z-index: 1040; }
+  .appbar.is-scrolled { --appbar-h: 52px; }
   .appbar__toggle { display: flex; }
   .appbar__nav {
     position: absolute;
@@ -307,24 +396,28 @@ a:hover { text-decoration-color: var(--rema-blue-100); }
     z-index: 60;
     flex-direction: column;
     align-items: stretch;
-    gap: .12rem;
+    gap: 2px;
     padding: .7rem;
-    background: var(--rema-blue-700);
-    border-bottom: 3px solid var(--rema-red);
-    box-shadow: 0 24px 48px rgba(3, 26, 53, .45);
-    max-height: calc(100dvh - 62px);
+    background: linear-gradient(180deg, var(--rema-blue-700), var(--rema-blue-800));
+    border-bottom: 2px solid var(--rema-red);
+    box-shadow: 0 30px 60px -18px rgba(3, 18, 42, .65);
+    max-height: calc(100dvh - var(--appbar-h));
     overflow-y: auto;
     visibility: hidden;
     opacity: 0;
-    transform: translateY(-8px);
-    transition: opacity .18s ease, transform .18s ease, visibility .18s;
+    transform: translateY(-10px);
+    transition: opacity .2s ease, transform .22s cubic-bezier(.32, 1.2, .5, 1), visibility .22s;
   }
   .appbar__nav.is-open { visibility: visible; opacity: 1; transform: none; }
-  .appbar__link { padding: .8rem .85rem; font-size: 1rem; border-radius: 10px; }
-  .appbar__link .icon { width: 1.15em; height: 1.15em; opacity: .95; }
+  .appbar__pill { display: none; }
+  .appbar__link { padding: .78rem .8rem; font-size: 1rem; border-radius: 11px; animation: none; }
+  .appbar__link .icon { width: 19px; height: 19px; opacity: .95; }
+  .appbar__link:hover { background: rgba(255, 255, 255, .1); }
+  .appbar__link.active { background: rgba(255, 255, 255, .14); box-shadow: inset 3px 0 0 var(--rema-red); }
+  .appbar__link.active .icon { filter: none; }
 
-  .appbar__user { margin: .5rem 0 0; padding-top: .7rem; border-top: 1px solid rgba(255, 255, 255, .16); }
-  .appbar__userbtn { display: none; }
+  .appbar__user { margin: .45rem 0 0; padding-top: .6rem; border-top: 1px solid rgba(255, 255, 255, .16); }
+  .appbar__avatar { display: none; }
   .appbar__menu {
     position: static;
     opacity: 1;
@@ -337,13 +430,18 @@ a:hover { text-decoration-color: var(--rema-blue-100); }
     min-width: 0;
   }
   .appbar__menu::before { display: none; }
-  .appbar__menu-head { color: #fff; }
+  .appbar__menu-head { color: #fff; padding-left: .8rem; }
   .appbar__menu-head strong { color: #fff; }
   .appbar__menu-head span { color: rgba(255, 255, 255, .7); }
-  .appbar__menu-item { color: rgba(255, 255, 255, .92); font-size: .98rem; padding: .7rem .7rem; }
+  .appbar__menu-item { color: rgba(255, 255, 255, .92); font-size: .98rem; padding: .72rem .8rem; }
   .appbar__menu-item .icon { color: rgba(255, 255, 255, .8); }
   .appbar__menu-item:hover { background: rgba(255, 255, 255, .12); color: #fff; }
   .appbar__menu-item:hover .icon { color: #fff; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .appbar__pill { transition: opacity .2s ease; }
+  .appbar__link { animation: none; }
 }
 
 /* ============================================================
