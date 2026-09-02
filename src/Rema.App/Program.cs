@@ -48,7 +48,11 @@ var emailOptions = builder.Configuration
     .GetSection(Rema.App.Services.Email.EmailOptions.Section)
     .Get<Rema.App.Services.Email.EmailOptions>() ?? new();
 if (emailOptions.IsConfigured)
-    builder.Services.AddSingleton<Rema.App.Services.Email.IEmailSender, Rema.App.Services.Email.SmtpEmailSender>();
+    builder.Services.AddHttpClient<Rema.App.Services.Email.IEmailSender, Rema.App.Services.Email.ResendEmailSender>(c =>
+    {
+        c.BaseAddress = new Uri(Rema.App.Services.Email.ResendEmailSender.BaseAddress);
+        c.Timeout = TimeSpan.FromSeconds(30);
+    });
 else
     builder.Services.AddSingleton<Rema.App.Services.Email.IEmailSender, Rema.App.Services.Email.LogEmailSender>();
 builder.Services.AddScoped<Rema.App.Services.ReminderSender>();
@@ -141,8 +145,8 @@ if (dpKeyB64 is null && !app.Environment.IsDevelopment())
 
 if (!emailOptions.IsConfigured && !app.Environment.IsDevelopment())
     app.Logger.LogWarning(
-        "Email er ikke opsat (Email__Host / Email__FromEmail). Påmindelser bliver IKKE sendt – "
-        + "de logges kun. Sæt en SMTP-server op (fx Brevo, gratis).");
+        "Email er ikke opsat (Email__ApiKey / Email__FromEmail). Påmindelser bliver IKKE sendt – "
+        + "de logges kun. Opret en gratis Resend-konto og sæt nøglen + en verificeret afsender.");
 
 app.UseForwardedHeaders();
 
