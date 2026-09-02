@@ -27,6 +27,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvide
     public DbSet<ChecklistItem> ChecklistItems => Set<ChecklistItem>();
     public DbSet<ChecklistDay> ChecklistDays => Set<ChecklistDay>();
     public DbSet<ChecklistTask> ChecklistTasks => Set<ChecklistTask>();
+    public DbSet<Reminder> Reminders => Set<Reminder>();
 
     /// <inheritdoc />
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
@@ -49,6 +50,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvide
             builder.Entity<ChecklistItem>().Property(x => x.Id),
             builder.Entity<ChecklistDay>().Property(x => x.Id),
             builder.Entity<ChecklistTask>().Property(x => x.Id),
+            builder.Entity<Reminder>().Property(x => x.Id),
         })
         {
             key.HasValueGenerator<GuidV7ValueGenerator>().ValueGeneratedOnAdd();
@@ -155,6 +157,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvide
             e.HasIndex(t => t.ChecklistDayId);
         });
 
+        builder.Entity<Reminder>(e =>
+        {
+            e.Property(r => r.Text).IsRequired();
+            e.Property(r => r.Status).HasConversion<string>().HasMaxLength(20);
+            e.HasIndex(r => new { r.StoreId, r.SendAtUtc });
+            // Dispatcheren fejer på tværs af butikker – index kun på status + tid.
+            e.HasIndex(r => new { r.Status, r.SendAtUtc });
+        });
+
         // Globalt tenant-filter på alt butiks-ejet data.
         builder.Entity<ProductCalculation>()
             .HasQueryFilter(p => p.StoreId == _tenantProvider.StoreId);
@@ -176,6 +187,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvide
             .HasQueryFilter(d => d.StoreId == _tenantProvider.StoreId);
         builder.Entity<ChecklistTask>()
             .HasQueryFilter(t => t.StoreId == _tenantProvider.StoreId);
+        builder.Entity<Reminder>()
+            .HasQueryFilter(r => r.StoreId == _tenantProvider.StoreId);
     }
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)

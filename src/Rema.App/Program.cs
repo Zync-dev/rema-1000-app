@@ -41,6 +41,19 @@ builder.Services.AddScoped<Rema.App.Services.TeamDirectory>();
 // --- Opgavelister ------------------------------------------------------
 builder.Services.AddScoped<Rema.App.Services.ChecklistService>();
 
+// --- Påmindelser + mail ------------------------------------------------
+builder.Services.Configure<Rema.App.Services.Email.EmailOptions>(
+    builder.Configuration.GetSection(Rema.App.Services.Email.EmailOptions.Section));
+var emailOptions = builder.Configuration
+    .GetSection(Rema.App.Services.Email.EmailOptions.Section)
+    .Get<Rema.App.Services.Email.EmailOptions>() ?? new();
+if (emailOptions.IsConfigured)
+    builder.Services.AddSingleton<Rema.App.Services.Email.IEmailSender, Rema.App.Services.Email.SmtpEmailSender>();
+else
+    builder.Services.AddSingleton<Rema.App.Services.Email.IEmailSender, Rema.App.Services.Email.LogEmailSender>();
+builder.Services.AddScoped<Rema.App.Services.ReminderSender>();
+builder.Services.AddHostedService<Rema.App.Services.ReminderDispatcher>();
+
 // --- AI (Facebook-opslag) ------------------------------------------------
 builder.Services.AddSingleton<Rema.App.Services.Ai.ApiKeyProtector>();
 builder.Services.AddHttpClient<Rema.App.Services.Ai.GeminiClient>(c =>
@@ -125,6 +138,11 @@ if (dpKeyB64 is null && !app.Environment.IsDevelopment())
     app.Logger.LogWarning(
         "DATAPROTECTION_KEY er ikke sat. Data Protection-nøgleringen (auth-cookies + gemte "
         + "Gemini API-nøgler) gemmes UKRYPTERET i databasen. Sæt en base64-nøgle: openssl rand -base64 32");
+
+if (!emailOptions.IsConfigured && !app.Environment.IsDevelopment())
+    app.Logger.LogWarning(
+        "Email er ikke opsat (Email__Host / Email__FromEmail). Påmindelser bliver IKKE sendt – "
+        + "de logges kun. Sæt en SMTP-server op (fx Brevo, gratis).");
 
 app.UseForwardedHeaders();
 

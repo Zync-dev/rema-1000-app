@@ -18,10 +18,13 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
 # libgssapi-krb5-2: Npgsql prøver at loade GSSAPI ved forbindelse; uden den
-# spammes loggen med "Cannot load library libgssapi_krb5.so.2".
+#   spammes loggen med "Cannot load library libgssapi_krb5.so.2".
+# tzdata: så "Europe/Copenhagen" kan slås op (påmindelser + "i dag" i dansk tid).
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+    && apt-get install -y --no-install-recommends libgssapi-krb5-2 tzdata \
     && rm -rf /var/lib/apt/lists/*
+
+ENV TZ=Europe/Copenhagen
 
 ENV ASPNETCORE_ENVIRONMENT=Production \
     DOTNET_RUNNING_IN_CONTAINER=true

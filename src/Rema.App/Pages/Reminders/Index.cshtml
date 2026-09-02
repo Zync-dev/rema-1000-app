@@ -1,0 +1,167 @@
+@page "/paamindelser"
+@using Rema.App.Data.Entities
+@using Rema.App.Services
+@model Rema.App.Pages.Reminders.IndexModel
+@{
+    ViewData["Title"] = "Påmindelser";
+
+    (string cls, string label) StatusChip(ReminderStatus s) => s switch
+    {
+        ReminderStatus.Sent => ("pill--ok", "Sendt"),
+        ReminderStatus.Failed => ("pill--warn", "Fejlede"),
+        ReminderStatus.Cancelled => ("pill--muted", "Aflyst"),
+        _ => ("pill--blue", "Planlagt"),
+    };
+}
+
+<header class="page-head">
+    <div>
+        <h1>Påmindelser</h1>
+        <p class="page-head__sub">Få en mail når noget skal huskes – fx “På mandag henter Karen 50 rundstykker”.</p>
+    </div>
+</header>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <h2 class="section-title">Kommende</h2>
+        @if (Model.Upcoming.Count == 0)
+        {
+            <div class="empty-state">
+                <svg class="icon icon--lg"><use href="#i-bell" /></svg>
+                <h2>Ingen påmindelser</h2>
+                <p>Opret den første med formularen.</p>
+            </div>
+        }
+        else
+        {
+            <div class="list-group mb-4">
+                @foreach (var r in Model.Upcoming)
+                {
+                    <div class="list-group-item data-row d-flex justify-content-between align-items-start gap-3">
+                        <div class="min-w-0">
+                            <span class="data-row__title">@r.Text</span>
+                            <div class="data-row__meta">
+                                @r.DueAtUtc.ToDanishDateTime() · til @r.Recipient
+                            </div>
+                        </div>
+                        <form method="post" asp-page-handler="Cancel" asp-route-id="@r.Id" class="flex-shrink-0"
+                              onsubmit="return confirm('Aflys påmindelsen?');">
+                            <button class="btn btn-sm btn-outline-secondary">Aflys</button>
+                        </form>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (Model.History.Count > 0)
+        {
+            <h2 class="section-title">Tidligere</h2>
+            <div class="list-group">
+                @foreach (var r in Model.History)
+                {
+                    var chip = StatusChip(r.Status);
+                    <div class="list-group-item data-row">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <span class="data-row__title">@r.Text</span>
+                            <span class="pill @chip.cls flex-shrink-0">@chip.label</span>
+                        </div>
+                        <div class="data-row__meta">@r.DueAtUtc.ToDanishDateTime() · til @r.Recipient</div>
+                        @if (r.Status == ReminderStatus.Failed && r.Error is not null)
+                        {
+                            <div class="text-danger small mt-1">@r.Error</div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="section-title">Ny påmindelse</h2>
+                <form method="post" class="stack">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+                    <div>
+                        <label asp-for="Input.Text" class="form-label"></label>
+                        <textarea asp-for="Input.Text" class="form-control" rows="2" placeholder="På mandag henter Karen 50 rundstykker"></textarea>
+                        <span asp-validation-for="Input.Text" class="text-danger small"></span>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-7">
+                            <label asp-for="Input.Date" class="form-label"></label>
+                            <input asp-for="Input.Date" type="date" class="form-control" />
+                            <span asp-validation-for="Input.Date" class="text-danger small"></span>
+                        </div>
+                        <div class="col-5">
+                            <label asp-for="Input.Time" class="form-label"></label>
+                            <input asp-for="Input.Time" type="time" class="form-control" />
+                            <span asp-validation-for="Input.Time" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label asp-for="Input.LeadMinutes" class="form-label"></label>
+                        <select asp-for="Input.LeadMinutes" class="form-select">
+                            @foreach (var (min, label) in Rema.App.Pages.Reminders.IndexModel.LeadOptions)
+                            {
+                                <option value="@min">@label</option>
+                            }
+                        </select>
+                    </div>
+
+                    <fieldset>
+                        <label class="form-label">Modtager</label>
+                        <div class="d-flex gap-3 mb-2" id="rcpKind">
+                            <label class="form-check-label d-flex align-items-center gap-1">
+                                <input class="form-check-input mt-0" type="radio" asp-for="Input.RecipientKind" value="user" /> Medarbejder
+                            </label>
+                            <label class="form-check-label d-flex align-items-center gap-1">
+                                <input class="form-check-input mt-0" type="radio" asp-for="Input.RecipientKind" value="other" /> Anden person
+                            </label>
+                        </div>
+                        <div data-kind="user">
+                            <select asp-for="Input.RecipientUserId" class="form-select">
+                                <option value="">Vælg medarbejder…</option>
+                                @foreach (var p in Model.People)
+                                {
+                                    <option value="@p.Id">@p.DisplayName</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Input.RecipientUserId" class="text-danger small"></span>
+                            @if (Model.People.Count == 0)
+                            {
+                                <p class="form-text">Ingen medarbejdere med e-mail endnu. Opret dem under <a asp-page="/Team/Index">Medarbejdere</a>.</p>
+                            }
+                        </div>
+                        <div data-kind="other" class="d-none stack">
+                            <input asp-for="Input.RecipientName" class="form-control" placeholder="Navn" />
+                            <span asp-validation-for="Input.RecipientName" class="text-danger small"></span>
+                            <input asp-for="Input.RecipientEmail" class="form-control" placeholder="E-mail" />
+                            <span asp-validation-for="Input.RecipientEmail" class="text-danger small"></span>
+                        </div>
+                    </fieldset>
+
+                    <button type="submit" class="btn btn-primary">
+                        <svg class="icon"><use href="#i-bell" /></svg> Opret påmindelse
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var radios = document.querySelectorAll('#rcpKind input[type=radio]');
+            var blocks = document.querySelectorAll('[data-kind]');
+            function sync() {
+                var kind = document.querySelector('#rcpKind input:checked').value;
+                blocks.forEach(function (b) { b.classList.toggle('d-none', b.dataset.kind !== kind); });
+            }
+            radios.forEach(function (r) { r.addEventListener('change', sync); });
+            sync();
+        })();
+    </script>
+}
